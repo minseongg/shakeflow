@@ -219,7 +219,7 @@ pub fn m() -> Module<IC, OC> {
             let ofifo_last = outside_o.filter_bwd_valid(k).fifo::<2>(k);
 
             let ofifo = ::std::iter::empty()
-                .chain(ofifo.into_iter())
+                .chain(ofifo)
                 .chain(::std::iter::once(ofifo_last))
                 .collect::<ArrayVec<_, MUX_NUM_IN_LP>>()
                 .into_inner()

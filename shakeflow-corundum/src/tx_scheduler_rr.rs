@@ -421,8 +421,6 @@ pub fn m<
             let active_queue_count = state.active_queue_count;
 
             // Updates states from pipeline input.
-            let pipeline_input = pipeline_input;
-
             let selector = pipeline_input.selector;
             let pipeline_input = pipeline_input.command;
 

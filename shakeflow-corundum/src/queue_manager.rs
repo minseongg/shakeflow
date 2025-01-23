@@ -69,7 +69,7 @@ pub fn m<
         });
 
         // Dequeue commit finalize (update pointer)
-        let commit = commit.map(k, |input| Expr::valid(input)).into_vr(k);
+        let commit = commit.map(k, Expr::valid).into_vr(k);
 
         // Dequeue request
         let request = input.request.zip_uni(k, input.enable.clone()).register_slice_bwd(k).assert_map(k, |input| {

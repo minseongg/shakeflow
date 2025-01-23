@@ -98,7 +98,7 @@ impl<const N: usize, A: Interface, B: Interface> ZipExt<A, B> for [A; N] {
     type Target = [(A, B); N];
 
     fn array_zip(self, b: [B; N]) -> [(A, B); N] {
-        self.into_iter().zip(b.into_iter()).collect::<ArrayVec<(A, B), N>>().into_inner().unwrap()
+        self.into_iter().zip(b).collect::<ArrayVec<(A, B), N>>().into_inner().unwrap()
     }
 }
 

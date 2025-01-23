@@ -30,7 +30,7 @@ impl Package {
                 gen_module::<Firgen>(name.clone(), &module).map_err(|error| PackageError::Module { error })?.into();
             let circuit = Circuit { modules: vec![module], main: name };
 
-            writeln!(file, "{}", circuit.to_string()).map_err(|error| PackageError::Fs { error })?;
+            writeln!(file, "{}", circuit).map_err(|error| PackageError::Fs { error })?;
         }
 
         Ok(())
@@ -215,7 +215,7 @@ impl Codegen for Firgen {
 
         let module_inst = Statement::def_inst(module.inst_name.clone(), module.get_module_name());
 
-        Ok(Statement::block(vec![vec![module_inst], connections].concat()))
+        Ok(Statement::block([vec![module_inst], connections].concat()))
     }
 
     fn gen_module_virtual(

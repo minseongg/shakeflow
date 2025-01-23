@@ -25,7 +25,7 @@ impl Package {
         let module = opt::wire_cache_opt(module);
         let module = opt::dead_code_opt(module);
 
-        writeln!(file, "{}", module.to_string()).map_err(|error| PackageError::Fs { error })?;
+        writeln!(file, "{}", module).map_err(|error| PackageError::Fs { error })?;
 
         Ok(())
     }
@@ -79,7 +79,7 @@ impl Package {
         // Check if top level modules are instantiated as a submodule
         for module in self.modules.iter() {
             let name = module.get_module_name();
-            if submodule_map.get(&name).is_some() {
+            if submodule_map.contains_key(&name) {
                 Err(PackageError::Module {
                     error: lir::ModuleError::Misc(
                         format!("Module {}, which is contained in the package as a top level module, is also instantiated as a submodule", name),
@@ -347,7 +347,7 @@ impl Codegen for Virgen {
                     } else if init_value.iter().all(|x| *x == LogicValue::X) {
                         Some(Expression::number(format!("{}'bx", init_value.len())))
                     } else {
-                        Some(Expression::number(format!("{}'b{}", init_value.len(), init_value.to_string())))
+                        Some(Expression::number(format!("{}'b{}", init_value.len(), init_value)))
                     }
                 } else {
                     None
@@ -735,7 +735,7 @@ impl Virgen {
                     } else if s.iter().all(|x| *x == LogicValue::X) {
                         Expression::number(format!("{}'bx", s.len()))
                     } else {
-                        Expression::number(format!("{}'b{}", s.len(), s.to_string(),))
+                        Expression::number(format!("{}'b{}", s.len(), s))
                     }
                 });
 
@@ -1122,10 +1122,10 @@ impl Virgen {
                     )?;
 
                     assign_decls.extend(decls_for_elt);
-                    assign_stmts.extend(vec![stmts_for_elt, stmts_for_assign].concat());
+                    assign_stmts.extend([stmts_for_elt, stmts_for_assign].concat());
                 }
 
-                let decls = vec![decls_for_output, assign_decls].concat();
+                let decls = [decls_for_output, assign_decls].concat();
                 let stmts = assign_stmts;
 
                 Ok((decls, stmts, exprs_for_output))
@@ -1265,8 +1265,8 @@ impl Virgen {
             )?,
         )?;
 
-        let decls = vec![decls_for_inner, decls_for_loop, decl_for_fold_output].concat();
-        let stmts = vec![
+        let decls = [decls_for_inner, decls_for_loop, decl_for_fold_output].concat();
+        let stmts = [
             stmts_for_acc,
             stmts_for_lhs,
             stmts_for_rhs,

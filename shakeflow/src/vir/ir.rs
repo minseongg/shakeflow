@@ -1,5 +1,7 @@
 //! Verilog IR.
 
+use std::fmt::Display;
+
 use crate::utils::indent;
 use crate::{join_options, lir};
 
@@ -18,9 +20,10 @@ pub struct Module {
     pub module_items: Vec<ModuleItem>,
 }
 
-impl ToString for Module {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for Module {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "`timescale 1ns / 1ps\n\nmodule {}\n(\n{}\n);\n\ngenerate\n{}\nendgenerate\nendmodule",
             self.name,
             indent(
@@ -54,22 +57,26 @@ pub enum ModuleItem {
     Commented(String, Option<String>, Vec<ModuleItem>),
 }
 
-impl ToString for ModuleItem {
-    fn to_string(&self) -> String {
+impl Display for ModuleItem {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            ModuleItem::Declarations(decls) => decls.iter().map(|decl| decl.to_string()).collect::<Vec<_>>().join("\n"),
-            ModuleItem::ContinuousAssigns(conts) => gen_verilog_conts(conts),
-            ModuleItem::ModuleInstantiation(module_inst) => module_inst.to_string(),
-            ModuleItem::GeneratedInstantiation(generated_inst) => generated_inst.to_string(),
+            ModuleItem::Declarations(decls) => {
+                write!(f, "{}", decls.iter().map(|decl| decl.to_string()).collect::<Vec<_>>().join("\n"))
+            }
+            ModuleItem::ContinuousAssigns(conts) => write!(f, "{}", gen_verilog_conts(conts)),
+            ModuleItem::ModuleInstantiation(module_inst) => write!(f, "{}", module_inst),
+            ModuleItem::GeneratedInstantiation(generated_inst) => write!(f, "{}", generated_inst),
             ModuleItem::AlwaysConstruct(event, stmts) => {
-                format!(
+                write!(
+                    f,
                     "{} begin\n{}\nend",
                     event,
                     indent(stmts.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT)
                 )
             }
             ModuleItem::Commented(comment_before, comment_after, items) => {
-                format!(
+                write!(
+                    f,
                     "/*\n{}\n*/\n{}{}",
                     indent(comment_before.clone(), INDENT),
                     items.iter().map(|item| item.to_string()).collect::<Vec<_>>().join("\n\n"),
@@ -95,21 +102,21 @@ pub enum PortDeclaration {
     Output(usize, String),
 }
 
-impl ToString for PortDeclaration {
-    fn to_string(&self) -> String {
+impl Display for PortDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Input(width, ident) => {
                 if *width > 1 {
-                    format!("input wire [{}-1:0] {}", width, ident)
+                    write!(f, "input wire [{}-1:0] {}", width, ident)
                 } else {
-                    format!("input wire {}", ident)
+                    write!(f, "input wire {}", ident)
                 }
             }
             Self::Output(width, ident) => {
                 if *width > 1 {
-                    format!("output wire [{}-1:0] {}", width, ident)
+                    write!(f, "output wire [{}-1:0] {}", width, ident)
                 } else {
-                    format!("output wire {}", ident)
+                    write!(f, "output wire {}", ident)
                 }
             }
         }
@@ -170,18 +177,17 @@ impl Declaration {
     pub fn integer(ident: String) -> Self { Declaration::Integer(ident) }
 }
 
-impl ToString for Declaration {
-    /// Generates verilog code.
-    fn to_string(&self) -> String {
+impl Display for Declaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Net(shape, ident) => match shape.dim() {
-                2 => format!("wire [{}-1:0] {}[{}-1:0];", shape.get(1), ident, shape.get(0)),
+                2 => write!(f, "wire [{}-1:0] {}[{}-1:0];", shape.get(1), ident, shape.get(0)),
                 1 => {
                     let width = shape.width();
                     if width > 1 {
-                        format!("wire [{}-1:0] {};", width, ident)
+                        write!(f, "wire [{}-1:0] {};", width, ident)
                     } else {
-                        format!("wire {};", ident)
+                        write!(f, "wire {};", ident)
                     }
                 }
                 _ => unimplemented!(),
@@ -190,24 +196,24 @@ impl ToString for Declaration {
                 assert_eq!(shape.dim(), 1);
                 let width = shape.width();
                 if width > 1 {
-                    format!("reg [{}-1:0] {} = {};", width, ident, expr.to_string())
+                    write!(f, "reg [{}-1:0] {} = {};", width, ident, expr)
                 } else {
-                    format!("reg {} = {};", ident, expr.to_string())
+                    write!(f, "reg {} = {};", ident, expr)
                 }
             }
             Self::Reg(shape, ident, None) => match shape.dim() {
-                2 => format!("reg [{}-1:0] {}[{}-1:0];", shape.get(1), ident, shape.get(0)),
+                2 => write!(f, "reg [{}-1:0] {}[{}-1:0];", shape.get(1), ident, shape.get(0)),
                 1 => {
                     let width = shape.width();
                     if width > 1 {
-                        format!("reg [{}-1:0] {};", width, ident)
+                        write!(f, "reg [{}-1:0] {};", width, ident)
                     } else {
-                        format!("reg {};", ident)
+                        write!(f, "reg {};", ident)
                     }
                 }
                 _ => unimplemented!(),
             },
-            Self::Integer(ident) => format!("integer {};", ident),
+            Self::Integer(ident) => write!(f, "integer {};", ident),
         }
     }
 }
@@ -221,8 +227,8 @@ pub fn gen_verilog_conts(conts: &[ContinuousAssign]) -> String {
     conts.iter().map(|cont| cont.to_string()).collect::<Vec<_>>().join("\n")
 }
 
-impl ToString for ContinuousAssign {
-    fn to_string(&self) -> String { format!("assign {} = {};", self.0.to_string(), self.1.to_string()) }
+impl Display for ContinuousAssign {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "assign {} = {};", self.0, self.1) }
 }
 
 impl ContinuousAssign {
@@ -246,9 +252,10 @@ pub struct ModuleInstantiation {
     pub port_connections: Vec<(String, Expression)>,
 }
 
-impl ToString for ModuleInstantiation {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for ModuleInstantiation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "{} #(\n{}\n)\n{} (\n{}\n);",
             self.module_name,
             self.params
@@ -259,7 +266,7 @@ impl ToString for ModuleInstantiation {
             self.inst_name,
             self.port_connections
                 .iter()
-                .map(|(port_name, expr)| { format!("    .{}({})", port_name, expr.to_string()) })
+                .map(|(port_name, expr)| { format!("    .{}({})", port_name, expr) })
                 .collect::<Vec<_>>()
                 .join(",\n")
         )
@@ -289,8 +296,8 @@ pub struct GeneratedInstantiation {
     pub loop_body: Vec<ModuleItem>,
 }
 
-impl ToString for GeneratedInstantiation {
-    fn to_string(&self) -> String {
+impl Display for GeneratedInstantiation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let genvar_decl = format!("genvar {};", self.genvar_identifier);
         let generate_loop = format!(
             "for ({} = 0; {} < {}; {} = {} + 1) begin\n{}\nend",
@@ -305,7 +312,7 @@ impl ToString for GeneratedInstantiation {
             )
         );
 
-        format!("{}\n{}", genvar_decl, generate_loop)
+        write!(f, "{}\n{}", genvar_decl, generate_loop)
     }
 }
 
@@ -350,53 +357,57 @@ impl Statement {
     }
 }
 
-impl ToString for Statement {
-    fn to_string(&self) -> String {
+impl Display for Statement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::BlockingAssignment(lvalue, expr) => {
-                format!("{} = {};", lvalue.to_string(), expr.to_string())
+                write!(f, "{} = {};", lvalue, expr)
             }
             Self::Conditional(cond, then_stmt, else_stmt) if else_stmt.is_empty() => {
-                format!(
+                write!(
+                    f,
                     "if ({}) begin\n{}\nend",
-                    cond.to_string(),
+                    cond,
                     indent(then_stmt.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT),
                 )
             }
             Self::Conditional(cond, then_stmt, else_stmt) => {
-                format!(
+                write!(
+                    f,
                     "if ({}) begin\n{}\nend else begin\n{}\nend",
-                    cond.to_string(),
+                    cond,
                     indent(then_stmt.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT),
                     indent(else_stmt.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT),
                 )
             }
             Self::Loop(ident, count, stmt) => {
-                format!(
+                write!(
+                    f,
                     "for ({} = 0; {} < {}; {} = {} + 1) begin\n{}\nend",
                     ident,
                     ident,
-                    count.to_string(),
+                    count,
                     ident,
                     ident,
                     indent(stmt.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT),
                 )
             }
             Self::NonblockingAssignment(lvalue, expr) => {
-                format!("{} <= {};", lvalue.to_string(), expr.to_string())
+                write!(f, "{} <= {};", lvalue, expr)
             }
             Self::Case(case_expr, case_items, default) => {
                 let case_items_code = case_items.iter().map(|(cond, stmt)| {
                     format!(
                         "{}: begin\n{}\nend",
-                        cond.to_string(),
+                        cond,
                         indent(stmt.iter().map(|stmt| stmt.to_string()).collect::<Vec<_>>().join("\n"), INDENT)
                     )
                 });
 
-                format!(
+                write!(
+                    f,
                     "case ({})\n{}{}\nendcase",
-                    case_expr.to_string(),
+                    case_expr,
                     indent(case_items_code.collect::<Vec<_>>().join("\n"), INDENT),
                     if default.is_empty() {
                         "".to_string()
@@ -485,14 +496,14 @@ pub struct Concatenation {
     pub exprs: Vec<Expression>,
 }
 
-impl ToString for Expression {
-    fn to_string(&self) -> String {
+impl Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Primary(prim) => prim.to_string(),
-            Self::Unary(op, prim) => format!("{}{}", op.to_string(), prim.to_string()),
-            Self::Binary(lhs, op, rhs) => format!("{} {} {}", lhs.to_string(), op.to_string(), rhs.to_string()),
+            Self::Primary(prim) => write!(f, "{}", prim),
+            Self::Unary(op, prim) => write!(f, "{}{}", op, prim),
+            Self::Binary(lhs, op, rhs) => write!(f, "{} {} {}", lhs, op, rhs),
             Self::Conditional(cond, then_expr, else_expr) => {
-                format!("{} ? {} : {}", cond.to_string(), then_expr.to_string(), else_expr.to_string(),)
+                write!(f, "{} ? {} : {}", cond, then_expr, else_expr)
             }
         }
     }
@@ -605,12 +616,12 @@ impl Expression {
     }
 }
 
-impl ToString for Range {
-    fn to_string(&self) -> String {
+impl Display for Range {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Index(index) => index.to_string(),
+            Self::Index(index) => write!(f, "{}", index),
             Self::Range(base, offset) => {
-                format!("{} +: {}", base.to_string(), offset.to_string())
+                write!(f, "{} +: {}", base, offset)
             }
         }
     }
@@ -624,33 +635,38 @@ impl Range {
     pub fn new_range(base: Expression, offset: Expression) -> Self { Self::Range(Box::new(base), Box::new(offset)) }
 }
 
-impl ToString for Primary {
-    fn to_string(&self) -> String {
+impl Display for Primary {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Number(num) => num.clone(),
+            Self::Number(num) => write!(f, "{}", num.clone()),
             Self::HierarchicalIdentifier(ident, Some(range)) => {
-                format!("{}[{}]", ident.clone(), range.to_string())
+                write!(f, "{}[{}]", ident.clone(), range)
             }
-            Self::HierarchicalIdentifier(ident, None) => ident.clone(),
-            Self::Concatenation(concat) => concat.to_string(),
+            Self::HierarchicalIdentifier(ident, None) => write!(f, "{}", ident.clone()),
+            Self::Concatenation(concat) => write!(f, "{}", concat),
             Self::MultipleConcatenation(count, concat) => {
-                format!("{{{}{}}}", count, concat.to_string())
+                write!(f, "{{{}{}}}", count, concat)
             }
-            Self::FunctionCall(function_call) => function_call.to_string(),
-            Self::MintypmaxExpression(expr) => format!("({})", expr.to_string()),
+            Self::FunctionCall(function_call) => write!(f, "{}", function_call),
+            Self::MintypmaxExpression(expr) => write!(f, "({})", expr),
         }
     }
 }
 
-impl ToString for Concatenation {
-    fn to_string(&self) -> String {
+impl Display for Concatenation {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         assert!(!self.exprs.is_empty());
-        format!("{{{}}}", self.exprs.iter().map(|expr| expr.to_string()).collect::<Vec<_>>().join(", "))
+        write!(f, "{{{}}}", self.exprs.iter().map(|expr| expr.to_string()).collect::<Vec<_>>().join(", "))
     }
 }
 
-impl ToString for FunctionCall {
-    fn to_string(&self) -> String {
-        format!("{}({})", self.func_name, self.args.iter().map(|expr| expr.to_string()).collect::<Vec<_>>().join(", "))
+impl Display for FunctionCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}({})",
+            self.func_name,
+            self.args.iter().map(|expr| expr.to_string()).collect::<Vec<_>>().join(", ")
+        )
     }
 }

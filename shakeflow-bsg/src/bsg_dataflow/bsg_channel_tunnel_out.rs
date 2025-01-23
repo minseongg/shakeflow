@@ -57,12 +57,8 @@ where [(); N + 1]: {
             })
             .buffer(k);
 
-        let rr_input: [VrChannel<Bits<Width>>; N + 1] = ::std::iter::empty()
-            .chain(data.into_iter())
-            .chain(::std::iter::once(credit))
-            .collect::<Vec<_>>()
-            .try_into()
-            .unwrap();
+        let rr_input: [VrChannel<Bits<Width>>; N + 1] =
+            ::std::iter::empty().chain(data).chain(::std::iter::once(credit)).collect::<Vec<_>>().try_into().unwrap();
 
         let (tag, data) = rr_input.comb_inline(k, super::bsg_round_robin_n_to_1::m::<Bits<Width>, { N + 1 }, true>());
 

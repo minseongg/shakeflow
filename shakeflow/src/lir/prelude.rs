@@ -1,6 +1,7 @@
 //! Low-level IR's prelude.
 
 use std::collections::{HashMap, VecDeque};
+use std::fmt::Display;
 use std::iter::FromIterator;
 use std::ops::*;
 
@@ -268,9 +269,10 @@ impl Channel {
 
 /// Input/output interface.
 #[allow(variant_size_differences)]
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Default, Debug, Clone, PartialEq, Eq)]
 pub enum Interface {
     /// Unit
+    #[default]
     Unit,
 
     /// Single channel
@@ -285,10 +287,6 @@ pub enum Interface {
     /// Struct of interfaces. The first `Option<String>` of value indicates separator of the field.
     /// If it is `None`, then separator is '_'.
     Struct(LinkedHashMap<String, (Option<String>, Interface)>),
-}
-
-impl Default for Interface {
-    fn default() -> Self { Interface::Unit }
 }
 
 impl Interface {
@@ -522,12 +520,13 @@ pub enum UnaryOp {
     Negation,
 }
 
-impl ToString for UnaryOp {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for UnaryOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
             UnaryOp::Negation => "~",
-        }
-        .to_string()
+        };
+
+        write!(f, "{}", value)
     }
 }
 
@@ -583,9 +582,9 @@ pub enum BinaryOp {
     ShiftRight,
 }
 
-impl ToString for BinaryOp {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for BinaryOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
             BinaryOp::Add => "+",
             BinaryOp::Sub => "-",
             BinaryOp::Mul => "*",
@@ -602,7 +601,8 @@ impl ToString for BinaryOp {
             BinaryOp::GreaterEq => ">=",
             BinaryOp::ShiftLeft => "<<",
             BinaryOp::ShiftRight => ">>",
-        }
-        .to_string()
+        };
+
+        write!(f, "{}", value)
     }
 }

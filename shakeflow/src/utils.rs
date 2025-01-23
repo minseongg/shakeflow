@@ -32,7 +32,7 @@ pub const fn flog2(val: usize) -> usize {
 /// let byte_aligned = align_usize(value, 8);
 /// assert_eq!(byte_aligned, 16);
 /// ````
-pub const fn align_usize(value: usize, by: usize) -> usize { (value + by - 1) / by * by }
+pub const fn align_usize(value: usize, by: usize) -> usize { value.div_ceil(by) * by }
 
 /// Returns bit-represented value of an integer.
 pub fn usize_to_bitvec(n: usize, value: usize) -> Vec<bool> {

@@ -1,6 +1,7 @@
 //! Generates target code from ShakeFlow module.
 
 use std::collections::VecDeque;
+use std::fmt::Display;
 use std::ops::*;
 
 use itertools::*;
@@ -298,11 +299,11 @@ pub enum Direction {
     Output,
 }
 
-impl ToString for Direction {
-    fn to_string(&self) -> String {
+impl Display for Direction {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Direction::Input => "input".to_string(),
-            Direction::Output => "output".to_string(),
+            Direction::Input => write!(f, "input"),
+            Direction::Output => write!(f, "output"),
         }
     }
 }
@@ -333,15 +334,14 @@ pub enum LogicValue {
     Z,
 }
 
-impl ToString for LogicValue {
-    fn to_string(&self) -> String {
+impl Display for LogicValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LogicValue::False => "0",
-            LogicValue::True => "1",
-            LogicValue::X => "x",
-            LogicValue::Z => "z",
+            LogicValue::False => write!(f, "0"),
+            LogicValue::True => write!(f, "1"),
+            LogicValue::X => write!(f, "x"),
+            LogicValue::Z => write!(f, "z"),
         }
-        .to_string()
     }
 }
 
@@ -349,8 +349,10 @@ impl ToString for LogicValue {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LogicValues(Vec<LogicValue>);
 
-impl ToString for LogicValues {
-    fn to_string(&self) -> String { self.0.iter().map(|b| b.to_string()).collect::<String>() }
+impl Display for LogicValues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.0.iter().map(|b| b.to_string()).collect::<String>())
+    }
 }
 
 impl Deref for LogicValues {

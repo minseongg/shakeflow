@@ -2,6 +2,8 @@
 //!
 //! For simplicity, we omitted some items such as `Info`, `StringLit`, `ExtModule`, ..
 
+use std::fmt::Display;
+
 use crate::codegen::*;
 use crate::lir;
 use crate::utils::indent;
@@ -93,9 +95,9 @@ pub enum PrimOp {
     Tail,
 }
 
-impl ToString for PrimOp {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for PrimOp {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let value = match self {
             PrimOp::Add => "add",
             PrimOp::Sub => "sub",
             PrimOp::Mul => "mul",
@@ -123,8 +125,9 @@ impl ToString for PrimOp {
             PrimOp::Bits => "bits",
             PrimOp::Head => "head",
             PrimOp::Tail => "tail",
-        }
-        .to_string()
+        };
+
+        write!(f, "{}", value)
     }
 }
 
@@ -238,26 +241,27 @@ pub enum Expression {
     },
 }
 
-impl ToString for Expression {
-    fn to_string(&self) -> String {
+impl Display for Expression {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Expression::Reference { name } => name.clone(),
+            Expression::Reference { name } => write!(f, "{}", name.clone()),
             Expression::SubField { expr, name } => {
-                format!("{}.{}", expr.to_string(), name)
+                write!(f, "{}.{}", expr, name)
             }
             Expression::SubIndex { expr, value } => {
-                format!("{}[{}]", expr.to_string(), value)
+                write!(f, "{}[{}]", expr, value)
             }
             Expression::SubAccess { expr, index } => {
-                format!("{}[{}]", expr.to_string(), index.to_string())
+                write!(f, "{}[{}]", expr, index)
             }
             Expression::Mux { cond, tval, fval } => {
-                format!("mux({}, {}, {})", cond.to_string(), tval.to_string(), fval.to_string())
+                write!(f, "mux({}, {}, {})", cond, tval, fval)
             }
             Expression::ValidIf { cond, valid } => {
-                format!("validif({}, {})", cond.to_string(), valid.to_string())
+                write!(f, "validif({}, {})", cond, valid)
             }
-            Expression::Literal { value, width } => format!(
+            Expression::Literal { value, width } => write!(
+                f,
                 "UInt{}({})",
                 match width {
                     None => "".to_string(),
@@ -266,9 +270,10 @@ impl ToString for Expression {
                 value
             ),
             Expression::DoPrim { op, args, consts } => {
-                format!(
+                write!(
+                    f,
                     "{}({})",
-                    op.to_string(),
+                    op,
                     ::std::iter::empty()
                         .chain(args.iter().map(|s| s.to_string()))
                         .chain(consts.iter().map(|s| s.to_string()))
@@ -333,7 +338,7 @@ impl Expression {
     /// Value should be represented in binary format. (e.g. "01001")
     #[inline]
     pub fn literal(value: LogicValues, width: Option<usize>) -> Self {
-        Expression::Literal { value: format!("\"b{}\"", value.to_string()), width }
+        Expression::Literal { value: format!("\"b{}\"", value), width }
     }
 
     /// Primitive operation.
@@ -541,31 +546,33 @@ pub enum Statement {
     EmptyStmt,
 }
 
-impl ToString for Statement {
-    fn to_string(&self) -> String {
+impl Display for Statement {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Statement::DefWire { name, tpe } => {
-                format!("wire {} : {}", name, tpe.to_string())
+                write!(f, "wire {} : {}", name, tpe)
             }
             Statement::DefRegister { name, tpe, clock, reset, init } => {
-                format!(
+                write!(
+                    f,
                     "reg {} : {}, {} with :\n{}",
                     name,
-                    tpe.to_string(),
-                    clock.to_string(),
-                    indent(format!("reset => ({}, {})", reset.to_string(), init.to_string()), INDENT)
+                    tpe,
+                    clock,
+                    indent(format!("reset => ({}, {})", reset, init), INDENT)
                 )
             }
             Statement::DefInstance { name, module } => {
-                format!("inst {} of {}", name, module)
+                write!(f, "inst {} of {}", name, module)
             }
             Statement::DefNode { name, value } => {
-                format!("node {} = {}", name, value.to_string())
+                write!(f, "node {} = {}", name, value)
             }
             Statement::Conditionally { pred, conseq, alt } => {
-                format!(
+                write!(
+                    f,
                     "when {} :\n{}{}",
-                    pred.to_string(),
+                    pred,
                     indent(conseq.to_string(), INDENT),
                     if matches!(**alt, Statement::EmptyStmt) {
                         "".to_string()
@@ -578,21 +585,21 @@ impl ToString for Statement {
                 let res = stmts.iter().map(|s| s.to_string()).collect::<Vec<_>>().join("\n");
 
                 if res.is_empty() {
-                    Statement::EmptyStmt.to_string()
+                    write!(f, "{}", Statement::EmptyStmt)
                 } else {
-                    res
+                    write!(f, "{}", res)
                 }
             }
             Statement::PartialConnect { loc, expr } => {
-                format!("{} <- {}", loc.to_string(), expr.to_string())
+                write!(f, "{} <- {}", loc, expr)
             }
             Statement::Connect { loc, expr } => {
-                format!("{} <= {}", loc.to_string(), expr.to_string())
+                write!(f, "{} <= {}", loc, expr)
             }
             Statement::IsInvalid { expr } => {
-                format!("{} is invalid", expr.to_string())
+                write!(f, "{} is invalid", expr)
             }
-            Statement::EmptyStmt => "skip".to_string(),
+            Statement::EmptyStmt => write!(f, "skip"),
         }
     }
 }
@@ -641,12 +648,12 @@ pub enum Type {
     },
 }
 
-impl ToString for Type {
-    fn to_string(&self) -> String {
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Type::ClockType => "Clock".to_string(),
-            Type::UIntType(width) => format!("UInt<{}>", width),
-            Type::VectorType { width, size } => format!("UInt<{}>[{}]", width, size),
+            Type::ClockType => write!(f, "Clock"),
+            Type::UIntType(width) => write!(f, "UInt<{}>", width),
+            Type::VectorType { width, size } => write!(f, "UInt<{}>[{}]", width, size),
         }
     }
 }
@@ -676,9 +683,9 @@ pub struct Port {
     pub tpe: Type,
 }
 
-impl ToString for Port {
-    fn to_string(&self) -> String {
-        format!("{} {} : {}", self.direction.to_string(), self.name, self.tpe.to_string(),)
+impl Display for Port {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} {} : {}", self.direction, self.name, self.tpe)
     }
 }
 
@@ -701,9 +708,10 @@ pub struct Module {
     pub body: Statement,
 }
 
-impl ToString for Module {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for Module {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "module {} :\n{}\n\n{}",
             self.name,
             indent(self.ports.iter().map(|s| s.to_string()).collect::<Vec<_>>().join("\n"), INDENT),
@@ -721,9 +729,10 @@ pub struct Circuit {
     pub main: String,
 }
 
-impl ToString for Circuit {
-    fn to_string(&self) -> String {
-        format!(
+impl Display for Circuit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
             "circuit {} :\n{}\n",
             self.main,
             self.modules.iter().map(|s| s.to_string()).map(|s| indent(s, INDENT)).collect::<Vec<_>>().join("\n")

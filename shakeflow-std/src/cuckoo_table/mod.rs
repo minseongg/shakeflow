@@ -50,8 +50,9 @@ pub enum LookupSource {
     Tx,
 }
 
-/// Indicated the operation of update request
-/// From <https://github.com/fpgasystems/Vitis_with_100Gbps_TCP-IP/blob/vitis_2022_1/fpga-network-stack/hls/hash_table/hash_table.hpp#:~:text=typedef%20enum%20%7BKV_INSERT%2C%20KV_DELETE%7D%20kvOperation%3B>
+/// Indicated the operation of update request.
+///
+/// From <https://github.com/fpgasystems/Vitis_with_100Gbps_TCP-IP/blob/vitis_2022_1/fpga-network-stack/hls/hash_table/hash_table.hpp#:~:text=typedef%20enum%20%7BKV_INSERT%2C%20KV_DELETE%7D%20kvOperation%3B>.
 #[derive(Debug, Clone, Copy, Signal)]
 pub enum KvOperation {
     /// Insert

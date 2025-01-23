@@ -499,7 +499,6 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     pub fn zip_uni<J: Signal>(self, k: &mut CompositeModuleContext, other: UniChannel<J>) -> VrChannel<(I, J), P> {
         (self, other).fsm::<(), VrChannel<(I, J), P>, _>(k, Some("zip_uni"), ().into(), |fwd, bwd, state| {
             let (fwd_i, fwd_j) = *fwd;
-            let fwd_i = fwd_i;
             let fwd = ValidProj { valid: fwd_i.valid, inner: (fwd_i.inner, fwd_j).into() };
             (fwd.into(), (bwd, ().into()).into(), state)
         })

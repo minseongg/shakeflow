@@ -50,10 +50,10 @@ impl<I1: Interface, I2: Interface, O1: Interface, O2: Interface> Module<(I1, I2)
                     input_interface_typ: virtual_module.input_interface_typ(),
                     output_interface_typ: virtual_module.output_interface_typ(),
                     input_endpoint_path: iter::once(lir::EndpointNode::Field(in1.0, in1.1 .0))
-                        .chain(virtual_module.input_endpoint().inner.into_iter())
+                        .chain(virtual_module.input_endpoint().inner)
                         .collect(),
                     output_endpoint_path: iter::once(lir::EndpointNode::Field(out1.0, out1.1 .0))
-                        .chain(virtual_module.output_endpoint().inner.into_iter())
+                        .chain(virtual_module.output_endpoint().inner)
                         .collect(),
                 };
                 let vm2 = lir::VirtualModule {
@@ -64,10 +64,10 @@ impl<I1: Interface, I2: Interface, O1: Interface, O2: Interface> Module<(I1, I2)
                     input_interface_typ: virtual_module.input_interface_typ(),
                     output_interface_typ: virtual_module.output_interface_typ(),
                     input_endpoint_path: iter::once(lir::EndpointNode::Field(in2.0, in2.1 .0))
-                        .chain(virtual_module.input_endpoint().inner.into_iter())
+                        .chain(virtual_module.input_endpoint().inner)
                         .collect(),
                     output_endpoint_path: iter::once(lir::EndpointNode::Field(out2.0, out2.1 .0))
-                        .chain(virtual_module.output_endpoint().inner.into_iter())
+                        .chain(virtual_module.output_endpoint().inner)
                         .collect(),
                 };
                 (Module::new(vm1.into()), Module::new(vm2.into()))
