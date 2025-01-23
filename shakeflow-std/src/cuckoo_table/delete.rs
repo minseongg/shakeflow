@@ -19,12 +19,12 @@ use crate::*;
 //     hashes: [HashType; NUM_TABLES],
 // }
 //
-// type StateTransitionResult<'id> =
-//     (Expr<'id, bool>, Expr<'id, (Valid<MemAccessRequest>, Valid<CalculateHashInput>)>, Expr<'id, State>);
+// type StateTransitionResult =
+//     (Expr<bool>, Expr<(Valid<MemAccessRequest>, Valid<CalculateHashInput>)>, Expr<State>);
 //
-// fn free_to_hash_transition<'id>(
-//     state: Expr<'id, State>, delete_req: Expr<'id, Valid<HtUpdateReq>>,
-// ) -> StateTransitionResult<'id> {
+// fn free_to_hash_transition(
+//     state: Expr<State>, delete_req: Expr<Valid<HtUpdateReq>>,
+// ) -> StateTransitionResult {
 //     let is_req_arrived = state.state.is_eq(DeleteState::Free.into()) & delete_req.valid;
 //     let hash_req = CalculateHashInputProj { key: delete_req.inner.key }.into();
 //     let resp = HtUpdateResp::new(delete_req.inner);
@@ -33,9 +33,9 @@ use crate::*;
 //     (is_req_arrived, (Expr::invalid(), Expr::valid(hash_req)).into(), state_next)
 // }
 //
-// fn hash_to_lookup_transition<'id>(
-//     state: Expr<'id, State>, hash_resp: Expr<'id, Valid<CalculateHashOutput>>,
-// ) -> StateTransitionResult<'id> {
+// fn hash_to_lookup_transition(
+//     state: Expr<State>, hash_resp: Expr<Valid<CalculateHashOutput>>,
+// ) -> StateTransitionResult {
 //     let is_hash_arrived = state.state.is_eq(DeleteState::CalculateHash.into()) & hash_resp.valid;
 //     let mem_req =
 //         MemAccessRequestProj { op: MemAccessOp::Lookup.into(), entries: Expr::x(), hashes: hash_resp.inner.hashes }
@@ -45,9 +45,9 @@ use crate::*;
 //     (is_hash_arrived, (Expr::valid(mem_req), Expr::invalid()).into(), state_next)
 // }
 //
-// fn lookup_to_update_transition<'id>(
-//     state: Expr<'id, State>, mem_resp: Expr<'id, Valid<MemAccessResult>>,
-// ) -> StateTransitionResult<'id> {
+// fn lookup_to_update_transition(
+//     state: Expr<State>, mem_resp: Expr<Valid<MemAccessResult>>,
+// ) -> StateTransitionResult {
 //     let is_lookup_arrived = state.state.is_eq(DeleteState::MemLookup.into())
 //         & mem_resp.valid
 //         & mem_resp.inner.op.is_eq(MemAccessOp::Lookup.into());
@@ -71,9 +71,9 @@ use crate::*;
 //     (is_lookup_arrived, (Expr::valid(mem_req), Expr::invalid()).into(), state_next)
 // }
 //
-// fn update_to_send_transition<'id>(
-//     state: Expr<'id, State>, mem_resp: Expr<'id, Valid<MemAccessResult>>,
-// ) -> StateTransitionResult<'id> {
+// fn update_to_send_transition(
+//     state: Expr<State>, mem_resp: Expr<Valid<MemAccessResult>>,
+// ) -> StateTransitionResult {
 //     let is_update_arrived = state.state.is_eq(DeleteState::MemUpdate.into())
 //         & mem_resp.valid
 //         & mem_resp.inner.op.is_eq(MemAccessOp::Update.into());
@@ -83,7 +83,7 @@ use crate::*;
 //     (is_update_arrived, (Expr::invalid(), Expr::invalid()).into(), state_next)
 // }
 //
-// fn send_to_free_transition<'id>(state: Expr<'id, State>, ready: Expr<'id, Ready>) -> StateTransitionResult<'id> {
+// fn send_to_free_transition(state: Expr<State>, ready: Expr<Ready>) -> StateTransitionResult {
 //     let is_ready_arrived = state.state.is_eq(DeleteState::Send.into()) & ready.ready;
 //     let state_next = state.set_state(DeleteState::Free.into());
 //

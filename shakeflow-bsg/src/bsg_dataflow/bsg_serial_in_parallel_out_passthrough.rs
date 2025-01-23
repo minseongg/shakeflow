@@ -12,7 +12,7 @@ pub struct S<V: Signal, const N: usize> {
 
 impl<V: Signal, const N: usize> S<V, N> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<'static, Self> { SProj { output: Expr::x(), count: 0.into() }.into() }
+    pub fn new_expr() -> Expr<Self> { SProj { output: Expr::x(), count: 0.into() }.into() }
 }
 
 pub fn m<V: Signal, const N: usize>() -> Module<IC<V>, EC<V, N>> {

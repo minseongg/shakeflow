@@ -31,7 +31,7 @@ pub struct Csum {
 }
 
 impl Serialize for Csum {
-    fn serialize<'id>(expr: Expr<'id, Self>) -> Expr<'id, Bits<U<{ Csum::WIDTH }>>> {
+    fn serialize(expr: Expr<Self>) -> Expr<Bits<U<{ Csum::WIDTH }>>> {
         let csum = expr.csum;
         let offset = expr.offset;
         let enable = expr.enable;
@@ -52,15 +52,15 @@ pub struct Sum<V: Signal> {
 pub type CsumPipeline<V> = AxisValue<Sum<V>>;
 
 impl Deserialize for Csum {
-    fn deserialize<'id>(expr: Expr<'id, Bits<U<{ Self::WIDTH }>>>) -> Expr<'id, Self> {
+    fn deserialize(expr: Expr<Bits<U<{ Self::WIDTH }>>>) -> Expr<Self> {
         CsumProj { csum: expr.clip_const::<U<16>>(9), offset: expr.clip_const::<U<8>>(1), enable: expr[0] }.into()
     }
 }
 
 // TODO(jeehoon.kang): maybe we should add it to the macro as well (like set_data).
-impl<'id, V: Signal> SumProj<'id, V> {
+impl<V: Signal> SumProj<V> {
     /// Maps the inner data.
-    pub fn map_data<W: Signal, F: Fn(Expr<'id, V>) -> Expr<'id, W>>(self, f: F) -> Expr<'id, Sum<W>> {
+    pub fn map_data<W: Signal, F: Fn(Expr<V>) -> Expr<W>>(self, f: F) -> Expr<Sum<W>> {
         SumProj { data: f(self.data), ..self }.into()
     }
 }

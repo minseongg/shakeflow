@@ -20,7 +20,7 @@ pub struct S {
 
 impl S {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<'static, S> {
+    pub fn new_expr() -> Expr<S> {
         SProj { decode_rd: false.into(), shift_reg: 0.into(), frame_counter: 0.into() }.into()
     }
 }

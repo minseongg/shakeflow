@@ -22,7 +22,7 @@ type KeyType<const MEM_SIZE: usize> = Bits<Log2<U<MEM_SIZE>>>;
 ///
 /// When valid read and valid write request arrive at the same time, both will be consumed
 pub fn m<ENTRY: Signal, const PIPELINE: usize, const NUM_ENTRIES: usize>(
-    init_entry: Expr<'static, ENTRY>,
+    init_entry: Expr<ENTRY>,
 ) -> Module<MemI<KeyType<NUM_ENTRIES>, ENTRY>, MemO<KeyType<NUM_ENTRIES>, ENTRY>> {
     // Memory size should be power of two
     assert!(NUM_ENTRIES.is_power_of_two());

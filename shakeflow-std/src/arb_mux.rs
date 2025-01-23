@@ -40,14 +40,14 @@ type OC<V: Signal, const N: usize> = VrChannel<O<V, N>>;
 ///
 /// Receives `(IC, ArbOC)` and returns `(OC, ArbIC)`.
 #[allow(clippy::type_complexity)]
-fn logic<'id, V: Signal, const N: usize>(
-    fwd_i: Expr<'id, (Array<Valid<V>, U<N>>, ArbO<N>)>, bwd_o: Expr<'id, (Ready, ())>,
-) -> (Expr<'id, (Valid<O<V, N>>, ArbI<N>)>, Expr<'id, (Array<Ready, U<N>>, ())>) {
+fn logic<V: Signal, const N: usize>(
+    fwd_i: Expr<(Array<Valid<V>, U<N>>, ArbO<N>)>, bwd_o: Expr<(Ready, ())>,
+) -> (Expr<(Valid<O<V, N>>, ArbI<N>)>, Expr<(Array<Ready, U<N>>, ())>) {
     let (module_input_fwd, arbiter_output) = *fwd_i;
     let m_axis_event_ready_int_reg = bwd_o.0.ready;
 
-    let module_input: Expr<'id, Array<V, U<N>>> = Expr::member(module_input_fwd, 0);
-    let s_axis_tvalid: Expr<'id, Bits<U<N>>> = Expr::member(module_input_fwd, 1);
+    let module_input: Expr<Array<V, U<N>>> = Expr::member(module_input_fwd, 0);
+    let s_axis_tvalid: Expr<Bits<U<N>>> = Expr::member(module_input_fwd, 1);
 
     let ArbOProj { grant, grant_encoded, grant_valid } = *arbiter_output;
 
@@ -57,7 +57,7 @@ fn logic<'id, V: Signal, const N: usize>(
     let s_axis_tready = (m_axis_event_ready_int_reg & grant_valid).repr().resize::<U<N>>() << grant_encoded;
 
     // TODO: The below code assumes LAST_ENABLE=0; Add `& s_axis_tlast` for LAST_ENABLE=1.
-    let arbiter_input: Expr<'id, ArbI<N>> =
+    let arbiter_input: Expr<ArbI<N>> =
         ArbIProj { request: s_axis_tvalid & !grant, acknowledge: grant & s_axis_tvalid & s_axis_tready }.into();
     let module_output =
         Expr::<Valid<O<V, N>>>::new(current_s_tvalid & grant_valid, OProj { inner: current, grant_encoded }.into());

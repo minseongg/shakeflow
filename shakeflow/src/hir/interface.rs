@@ -51,14 +51,9 @@ pub trait Interface: 'static + Sized + Debug {
     fn fsm<
         S: Signal,
         O: 'static + Interface,
-        F: 'static
-            + for<'id> Fn(
-                Expr<'id, Self::Fwd>,
-                Expr<'id, O::Bwd>,
-                Expr<'id, S>,
-            ) -> (Expr<'id, O::Fwd>, Expr<'id, Self::Bwd>, Expr<'id, S>),
+        F: 'static + Fn(Expr<Self::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<Self::Bwd>, Expr<S>),
     >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> O {
         self.comb_inline(k, Fsm::new(module_name.unwrap_or("fsm"), f, init).into())
     }

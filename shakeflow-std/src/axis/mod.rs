@@ -64,14 +64,14 @@ pub struct AxisReady {
 }
 
 /// AxisValid Extension
-pub trait AxisValidExt<'id, V: Signal> {
+pub trait AxisValidExt<V: Signal> {
     /// Creates an invalid expr.
-    fn tinvalid() -> Expr<'id, AxisValid<V>>;
+    fn tinvalid() -> Expr<AxisValid<V>>;
 }
 
-impl<'id, V: Signal> AxisValidExt<'id, V> for Expr<'id, AxisValid<V>> {
+impl<V: Signal> AxisValidExt<V> for Expr<AxisValid<V>> {
     /// Creates an invalid expr.
-    fn tinvalid() -> Expr<'id, AxisValid<V>> { AxisValidProj { inner: Expr::x(), tvalid: false.into() }.into() }
+    fn tinvalid() -> Expr<AxisValid<V>> { AxisValidProj { inner: Expr::x(), tvalid: false.into() }.into() }
 }
 
 /// AXIs valid-ready channel.
@@ -108,14 +108,14 @@ impl<V: Signal, const P: Protocol> Interface for AxisVrChannel<V, P> {
 pub type AxisChannel<Data, const P: Protocol = { Protocol::Helpful }> = AxisVrChannel<AxisValue<Data>, P>;
 
 /// AXI Value Extention
-pub trait AxisValueExt<'id, V: Signal> {
+pub trait AxisValueExt<V: Signal> {
     /// Maps the inner value.
-    fn map<W: Signal, F: Fn(Expr<'id, V>) -> Expr<'id, W>>(self, f: F) -> Expr<'id, AxisValue<W>>;
+    fn map<W: Signal, F: Fn(Expr<V>) -> Expr<W>>(self, f: F) -> Expr<AxisValue<W>>;
 }
 
-impl<'id, V: Signal> AxisValueExt<'id, V> for Expr<'id, AxisValue<V>> {
+impl<V: Signal> AxisValueExt<V> for Expr<AxisValue<V>> {
     /// Maps the inner value.
-    fn map<W: Signal, F: Fn(Expr<'id, V>) -> Expr<'id, W>>(self, f: F) -> Expr<'id, AxisValue<W>> {
+    fn map<W: Signal, F: Fn(Expr<V>) -> Expr<W>>(self, f: F) -> Expr<AxisValue<W>> {
         AxisValueProj { payload: f(self.payload), tlast: self.tlast }.into()
     }
 }

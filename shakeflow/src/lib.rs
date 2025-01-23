@@ -9,10 +9,8 @@
 #![deny(macro_use_extern_crate)]
 #![deny(missing_debug_implementations)]
 #![deny(non_ascii_idents)]
-#![deny(pointer_structural_match)]
 #![deny(rust_2018_idioms)]
 #![deny(trivial_numeric_casts)]
-#![deny(unaligned_references)]
 #![deny(unsafe_op_in_unsafe_fn)]
 #![deny(unused_extern_crates)]
 #![deny(unused_import_braces)]
@@ -40,6 +38,7 @@
 #![allow(type_alias_bounds)]
 //
 #![feature(generic_const_exprs)]
+#![feature(adt_const_params)]
 
 #[macro_use]
 pub mod hir;

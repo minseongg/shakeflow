@@ -112,15 +112,15 @@ impl Selector {
     /// # Note
     ///
     /// Order of bits should follow the order of selector fields.
-    pub fn from_bits<'id>(selector: Expr<'id, Bits<U<4>>>) -> Expr<'id, Self> {
+    pub fn from_bits(selector: Expr<Bits<U<4>>>) -> Expr<Self> {
         SelectorProj { write: selector[0], read: selector[1], commit: selector[2], req: selector[3] }.into()
     }
 
-    pub fn is_active<'id>(selector: Expr<'id, Self>) -> Expr<'id, bool> {
+    pub fn is_active(selector: Expr<Self>) -> Expr<bool> {
         selector.read | selector.write | selector.commit | selector.req
     }
 
-    pub fn bitor<'id>(lhs: Expr<'id, Self>, rhs: Expr<'id, Self>) -> Expr<'id, Self> {
+    pub fn bitor(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<Self> {
         SelectorProj {
             write: lhs.write | rhs.write,
             read: lhs.read | rhs.read,
@@ -146,17 +146,16 @@ pub struct OpTableEntry<const QUEUE_INDEX_WIDTH: usize, const QUEUE_PTR_WIDTH: u
 }
 
 pub fn update_op_table<
-    'id,
     Pipeline: Num,
     QueueCount: Num,
     const OP_TABLE_SIZE: usize,
     const QUEUE_INDEX_WIDTH: usize,
     const QUEUE_PTR_WIDTH: usize,
 >(
-    state: Expr<'id, OpState<Pipeline, QueueCount, OP_TABLE_SIZE, QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>>,
-    op_table_start: Expr<'id, Valid<OpTableStart<QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>>>,
-    op_table_finish: Expr<'id, Valid<()>>, op_table_commit: Expr<'id, Valid<Bits<Log2<U<OP_TABLE_SIZE>>>>>,
-) -> Expr<'id, OpState<Pipeline, QueueCount, OP_TABLE_SIZE, QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>> {
+    state: Expr<OpState<Pipeline, QueueCount, OP_TABLE_SIZE, QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>>,
+    op_table_start: Expr<Valid<OpTableStart<QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>>>, op_table_finish: Expr<Valid<()>>,
+    op_table_commit: Expr<Valid<Bits<Log2<U<OP_TABLE_SIZE>>>>>,
+) -> Expr<OpState<Pipeline, QueueCount, OP_TABLE_SIZE, QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>> {
     let mut state = *state;
     let mut op_table = *state.op_table;
 
@@ -208,7 +207,7 @@ impl<
         const QUEUE_PTR_WIDTH: usize,
     > OpState<Pipeline, QueueCount, OP_TABLE_SIZE, QUEUE_INDEX_WIDTH, QUEUE_PTR_WIDTH>
 {
-    pub fn new_expr() -> Expr<'static, Self> {
+    pub fn new_expr() -> Expr<Self> {
         OpStateProj {
             queue_ram: Expr::x(),
             queue_ram_read_data: Expr::x(),
@@ -231,18 +230,16 @@ pub struct Cmd<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize> {
 
 impl<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize> Cmd<QUEUE_INDEX_WIDTH, REQ_TAG_WIDTH> {
     /// Creates new expr.
-    pub fn new_expr<'id>(
-        queue_ram_addr: Expr<'id, Bits<U<QUEUE_INDEX_WIDTH>>>, axil_reg: Expr<'id, Bits<U<3>>>,
-        write_req: Expr<'id, WReq>, req_tag: Expr<'id, Bits<U<REQ_TAG_WIDTH>>>,
-    ) -> Expr<'id, Self> {
+    pub fn new_expr(
+        queue_ram_addr: Expr<Bits<U<QUEUE_INDEX_WIDTH>>>, axil_reg: Expr<Bits<U<3>>>, write_req: Expr<WReq>,
+        req_tag: Expr<Bits<U<REQ_TAG_WIDTH>>>,
+    ) -> Expr<Self> {
         CmdProj { queue_ram_addr, axil_reg, write_req, req_tag }.into()
     }
 }
 
 impl<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize> Command for Cmd<QUEUE_INDEX_WIDTH, REQ_TAG_WIDTH> {
-    fn collision<'id>(lhs: Expr<'id, Self>, rhs: Expr<'id, Self>) -> Expr<'id, bool> {
-        lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr)
-    }
+    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> { lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr) }
 }
 
 #[derive(Debug, Clone, Signal)]
@@ -254,7 +251,7 @@ pub struct PipelineStage<Sel: Signal + Default, Cmd: Command> {
 impl<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize>
     PipelineStage<Selector, Cmd<QUEUE_INDEX_WIDTH, REQ_TAG_WIDTH>>
 {
-    pub fn new_expr() -> Expr<'static, Self> {
+    pub fn new_expr() -> Expr<Self> {
         PipelineStageProj {
             selector: Selector::default().into(),
             command: Cmd::new_expr(0.into(), Expr::x(), WReq::new_expr(), Expr::x()),

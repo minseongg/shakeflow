@@ -81,12 +81,7 @@ impl<
         I: Interface,
         O: Interface,
         S: Signal,
-        F: 'static
-            + for<'id> Fn(
-                Expr<'id, I::Fwd>,
-                Expr<'id, O::Bwd>,
-                Expr<'id, S>,
-            ) -> (Expr<'id, O::Fwd>, Expr<'id, I::Bwd>, Expr<'id, S>),
+        F: 'static + Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
     > From<Fsm<I, O, S, F>> for Module<I, O>
 {
     fn from(module: Fsm<I, O, S, F>) -> Self { Self { inner: lir::Fsm::from(module).into(), _marker: PhantomData } }

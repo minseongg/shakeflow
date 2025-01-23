@@ -14,14 +14,14 @@ pub struct Deque {
 }
 
 /// Deque Extension
-pub trait DequeExt<'id> {
+pub trait DequeExt {
     /// Creates a new expr
-    fn new(deque: Expr<'id, bool>) -> Self;
+    fn new(deque: Expr<bool>) -> Self;
 }
 
-impl<'id> DequeExt<'id> for Expr<'id, Deque> {
+impl DequeExt for Expr<Deque> {
     /// Creates a new expr.
-    fn new(deque: Expr<'id, bool>) -> Self { DequeProj { deque }.into() }
+    fn new(deque: Expr<bool>) -> Self { DequeProj { deque }.into() }
 }
 
 // Data-deque channel.
@@ -58,12 +58,8 @@ impl<V: Signal> DeqChannel<V> {
 
 impl<I: Signal> DeqChannel<I> {
     /// Fsm for deque channel.
-    pub fn fsm_map<
-        S: Signal,
-        O: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, I>, Expr<'id, S>) -> (Expr<'id, O>, Expr<'id, S>, Expr<'id, bool>),
-    >(
-        self, k: &mut CompositeModuleContext, init: Expr<'static, S>, f: F,
+    pub fn fsm_map<S: Signal, O: Signal, F: 'static + Fn(Expr<I>, Expr<S>) -> (Expr<O>, Expr<S>, Expr<bool>)>(
+        self, k: &mut CompositeModuleContext, init: Expr<S>, f: F,
     ) -> DeqChannel<O> {
         self.fsm::<S, DeqChannel<O>, _>(k, Some("fsm_map"), init, move |fwd_i, bwd_o, s| {
             let (fwd_o, s_next, last) = f(fwd_i, s);

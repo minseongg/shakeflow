@@ -35,7 +35,7 @@ pub struct HtEntry {
 
 impl HtEntry {
     /// Create an initial entry
-    pub(super) fn init_expr() -> Expr<'static, Self> {
+    pub(super) fn init_expr() -> Expr<Self> {
         HtEntryProj { key: 0.into(), value: 0.into(), valid: false.into() }.into()
     }
 }

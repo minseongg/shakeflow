@@ -53,9 +53,7 @@ pub struct Output {
 }
 
 /// Computes toeplitz hash.
-fn hash_toep<'id>(
-    data: Expr<'id, Bits<U<{ 36 * 8 }>>>, len: usize, key: Expr<'id, Bits<U<{ 40 * 8 }>>>,
-) -> Expr<'id, Bits<U<32>>> {
+fn hash_toep(data: Expr<Bits<U<{ 36 * 8 }>>>, len: usize, key: Expr<Bits<U<{ 40 * 8 }>>>) -> Expr<Bits<U<32>>> {
     iproduct!(0..len, 0..8).fold(0.into(), |hash_toep, (i, j)| {
         hash_toep ^ data[i * 8 + (7 - j)].cond(key.clip_const::<U<32>>(40 * 8 - 32 - i * 8 - j), 0.into())
     })

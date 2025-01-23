@@ -17,9 +17,9 @@ struct State<V: Signal> {
 
 /// Skid buffer's logic.
 #[allow(clippy::type_complexity)]
-fn logic<'id, V: Signal>(
-    i_fwd: Expr<'id, Valid<V>>, o_bwd: Expr<'id, Ready>, state: Expr<'id, State<V>>,
-) -> (Expr<'id, Valid<V>>, Expr<'id, Ready>, Expr<'id, State<V>>) {
+fn logic<V: Signal>(
+    i_fwd: Expr<Valid<V>>, o_bwd: Expr<Ready>, state: Expr<State<V>>,
+) -> (Expr<Valid<V>>, Expr<Ready>, Expr<State<V>>) {
     // Projections.
     let ValidProj { inner: skid_buffer_data_int, valid: skid_buffer_valid_int } = *i_fwd;
 

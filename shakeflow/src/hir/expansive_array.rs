@@ -57,8 +57,8 @@ impl<I: Interface, const N: usize> Interface for ExpansiveArray<I, N> {
     }
 }
 
-impl<'id, V: Signal, const N: usize> From<Expr<'id, ExpansiveArrayValue<V, N>>> for Expr<'id, Array<V, U<N>>> {
-    fn from(expr: Expr<'id, ExpansiveArrayValue<V, N>>) -> Self {
+impl<V: Signal, const N: usize> From<Expr<ExpansiveArrayValue<V, N>>> for Expr<Array<V, U<N>>> {
+    fn from(expr: Expr<ExpansiveArrayValue<V, N>>) -> Self {
         let expr_elts =
             (0..N).map(|i| Expr::<V>::member(expr, i)).collect::<ArrayVec<Expr<V>, N>>().into_inner().unwrap();
 
@@ -66,8 +66,8 @@ impl<'id, V: Signal, const N: usize> From<Expr<'id, ExpansiveArrayValue<V, N>>> 
     }
 }
 
-impl<'id, V: Signal, const N: usize> From<Expr<'id, Array<V, U<N>>>> for Expr<'id, ExpansiveArrayValue<V, N>> {
-    fn from(expr: Expr<'id, Array<V, U<N>>>) -> Self {
+impl<V: Signal, const N: usize> From<Expr<Array<V, U<N>>>> for Expr<ExpansiveArrayValue<V, N>> {
+    fn from(expr: Expr<Array<V, U<N>>>) -> Self {
         lir::Expr::Struct { inner: (0..N).map(|i| (Some(i.to_string()), expr[i].into_inner())).collect() }.into()
     }
 }

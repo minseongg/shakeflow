@@ -36,7 +36,7 @@ pub struct Table {
     ///
     /// Since this storage is dropped after the target code is generated, it is safe to use it in
     /// the target code generation.
-    pub(crate) storage: RefCell<Vec<Box<dyn TableStorageElement<'static>>>>,
+    pub(crate) storage: RefCell<Vec<Box<dyn TableStorageElement>>>,
 }
 
 impl std::fmt::Debug for Table {
@@ -63,7 +63,7 @@ thread_local! {
 }
 
 #[doc(hidden)]
-pub trait TableStorageElement<'id> {}
+pub trait TableStorageElement {}
 
 /// Exprs.
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]

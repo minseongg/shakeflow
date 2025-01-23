@@ -13,12 +13,10 @@ pub struct Hazard<Sel: Default + Signal, Cmd: Command, const PIPELINE: usize> {
 
 impl<Sel: Default + Signal, Cmd: Command, const PIPELINE: usize> Hazard<Sel, Cmd, PIPELINE> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<'static, Self> {
-        HazardProj { selector: Sel::default().into(), targets: Expr::x() }.into()
-    }
+    pub fn new_expr() -> Expr<Self> { HazardProj { selector: Sel::default().into(), targets: Expr::x() }.into() }
 
     /// Calculates pipe hazard.
-    pub fn pipe_hazard<'id>(hazard: Expr<'id, Self>, target: Expr<'id, Cmd>) -> Expr<'id, bool> {
+    pub fn pipe_hazard(hazard: Expr<Self>, target: Expr<Cmd>) -> Expr<bool> {
         (0..PIPELINE)
             .map(|i| {
                 let stage_target = hazard.targets[i];
@@ -31,7 +29,7 @@ impl<Sel: Default + Signal, Cmd: Command, const PIPELINE: usize> Hazard<Sel, Cmd
 /// Signal type used in command queue.
 pub trait Command: Signal {
     /// Returns `true` if `lhs` and `rhs` has collision, so that it cannot be pushed into command queue.
-    fn collision<'id>(lhs: Expr<'id, Self>, rhs: Expr<'id, Self>) -> Expr<'id, bool>;
+    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool>;
 }
 
 /// Command queue.

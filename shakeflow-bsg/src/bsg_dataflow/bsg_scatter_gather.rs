@@ -27,7 +27,7 @@ pub struct E<const VEC_SIZE: usize> {
 }
 
 impl<const VEC_SIZE: usize> E<VEC_SIZE> {
-    pub fn new_expr() -> Expr<'static, Self> {
+    pub fn new_expr() -> Expr<Self> {
         EProj {
             fwd: Expr::<Bits<Log2<U<VEC_SIZE>>>>::from(0).repeat(),
             fwd_datapath: Expr::<Bits<Log2<U<VEC_SIZE>>>>::from(0).repeat(),
@@ -54,10 +54,8 @@ fn int_to_bit_list(a: usize, pad: usize) -> Vec<bool> {
 
 /// Corresponds to `print_case_line`.
 #[inline]
-fn result_to_case_rhs<const VEC_SIZE: usize>(
-    result: Vec<usize>,
-) -> Expr<'static, Array<Bits<Log2<U<VEC_SIZE>>>, U<VEC_SIZE>>> {
-    let case_rhs: [Expr<'static, Bits<Log2<U<VEC_SIZE>>>>; VEC_SIZE] = result
+fn result_to_case_rhs<const VEC_SIZE: usize>(result: Vec<usize>) -> Expr<Array<Bits<Log2<U<VEC_SIZE>>>, U<VEC_SIZE>>> {
+    let case_rhs: [Expr<Bits<Log2<U<VEC_SIZE>>>>; VEC_SIZE] = result
         .into_iter()
         .map(|a| {
             let mut rhs = int_to_bit_list(a, clog2(VEC_SIZE));
@@ -73,7 +71,7 @@ fn result_to_case_rhs<const VEC_SIZE: usize>(
 
 /// Corresponds to `gen_{fwd|back}_vec_line_helper`.
 #[inline]
-fn gen_case_expr<const VEC_SIZE: usize>(a: usize) -> Expr<'static, E<VEC_SIZE>> {
+fn gen_case_expr<const VEC_SIZE: usize>(a: usize) -> Expr<E<VEC_SIZE>> {
     let l = int_to_bit_list(a, VEC_SIZE);
 
     let mut fwd = vec![];

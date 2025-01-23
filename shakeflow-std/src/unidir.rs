@@ -48,7 +48,7 @@ impl<V: Signal, const N: usize> ConcatExt<V, N> for [UniChannel<V>; N] {
 
 impl<V: Signal> UniChannel<V> {
     /// Generates the value indefinitely.
-    pub fn source(k: &mut CompositeModuleContext, value: Expr<'static, V>) -> Self {
+    pub fn source(k: &mut CompositeModuleContext, value: Expr<V>) -> Self {
         ().fsm(k, Some("source"), ().into(), move |_fwd, _bwd, state| (value, ().into(), state))
     }
 
@@ -106,7 +106,7 @@ impl<V: Signal> UniChannel<Valid<V>> {
     }
 
     /// Maps the inner value.
-    pub fn map_inner<W: Signal, F: 'static + for<'id> Fn(Expr<'id, V>) -> Expr<'id, W>>(
+    pub fn map_inner<W: Signal, F: 'static + Fn(Expr<V>) -> Expr<W>>(
         self, k: &mut CompositeModuleContext, f: F,
     ) -> UniChannel<Valid<W>> {
         self.map(k, move |input| {

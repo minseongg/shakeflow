@@ -31,7 +31,7 @@ pub type IC = UniChannel<I>;
 /// Egress channel.
 pub type EC = UniChannel<E>;
 
-pub fn logic(input: Expr<'_, I>) -> Expr<'_, E> {
+pub fn logic(input: Expr<I>) -> Expr<E> {
     let data_i = input.data;
     let rd_i = input.rd;
 

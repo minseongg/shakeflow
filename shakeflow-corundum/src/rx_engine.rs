@@ -152,7 +152,7 @@ struct DescTable<const DESC_TABLE_SIZE: usize> {
 }
 
 impl<const DESC_TABLE_SIZE: usize> DescTable<DESC_TABLE_SIZE> {
-    fn new_expr() -> Expr<'static, Self> {
+    fn new_expr() -> Expr<Self> {
         DescTableProj {
             entries: DescTableEntryVarArr::new_expr(),
             mtu: 0.into(),

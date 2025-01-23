@@ -85,7 +85,7 @@ impl Selector {
     /// # Note
     ///
     /// Order of bits should follow the order of selector fields.
-    fn from_bits<'id>(selector: Expr<'id, Bits<U<6>>>) -> Expr<'id, Self> {
+    fn from_bits(selector: Expr<Bits<U<6>>>) -> Expr<Self> {
         SelectorProj {
             internal: selector[0],
             write: selector[1],
@@ -97,7 +97,7 @@ impl Selector {
         .into()
     }
 
-    fn is_active<'id>(selector: Expr<'id, Self>) -> Expr<'id, bool> {
+    fn is_active(selector: Expr<Self>) -> Expr<bool> {
         selector.internal | selector.write | selector.read | selector.doorbell | selector.complete | selector.req
     }
 }
@@ -173,7 +173,7 @@ struct OpState<
 }
 
 impl<const OP_TABLE_SIZE: usize> Finish<OP_TABLE_SIZE> {
-    fn new_expr() -> Expr<'static, Self> { FinishProj { ptr: 0.into(), status: false.into() }.into() }
+    fn new_expr() -> Expr<Self> { FinishProj { ptr: 0.into(), status: false.into() }.into() }
 }
 
 impl<
@@ -184,7 +184,7 @@ impl<
         const OP_TABLE_SIZE: usize,
     > OpState<QueueCount, REQ_TAG_WIDTH, QUEUE_INDEX_WIDTH, QUEUE_RAM_WIDTH, OP_TABLE_SIZE>
 {
-    fn new_expr() -> Expr<'static, Self> {
+    fn new_expr() -> Expr<Self> {
         OpStateProj {
             queue_ram: Expr::x(),
             op_table: OpTableEntryVarArr::new_expr(),
@@ -211,20 +211,17 @@ pub struct Cmd<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, con
 impl<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, const OP_TABLE_SIZE: usize> Command
     for Cmd<QUEUE_RAM_WIDTH, QUEUE_INDEX_WIDTH, OP_TABLE_SIZE>
 {
-    fn collision<'id>(lhs: Expr<'id, Self>, rhs: Expr<'id, Self>) -> Expr<'id, bool> {
-        lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr)
-    }
+    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> { lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr) }
 }
 
 impl<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, const OP_TABLE_SIZE: usize>
     Cmd<QUEUE_RAM_WIDTH, QUEUE_INDEX_WIDTH, OP_TABLE_SIZE>
 {
     /// Creates new expr.
-    pub fn new_expr<'id>(
-        queue_ram_addr: Expr<'id, Bits<U<QUEUE_INDEX_WIDTH>>>,
-        queue_ram_read_data: Expr<'id, Bits<U<QUEUE_RAM_WIDTH>>>, write_req: Expr<'id, WReq>,
-        op_index: Expr<'id, Bits<Log2<U<OP_TABLE_SIZE>>>>,
-    ) -> Expr<'id, Self> {
+    pub fn new_expr(
+        queue_ram_addr: Expr<Bits<U<QUEUE_INDEX_WIDTH>>>, queue_ram_read_data: Expr<Bits<U<QUEUE_RAM_WIDTH>>>,
+        write_req: Expr<WReq>, op_index: Expr<Bits<Log2<U<OP_TABLE_SIZE>>>>,
+    ) -> Expr<Self> {
         CmdProj { queue_ram_addr, queue_ram_read_data, write_req, op_index }.into()
     }
 }

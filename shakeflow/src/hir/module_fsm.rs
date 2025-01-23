@@ -13,18 +13,14 @@ pub struct Fsm<
     I: Interface,
     O: Interface,
     S: Signal,
-    F: for<'id> Fn(
-        Expr<'id, I::Fwd>,
-        Expr<'id, O::Bwd>,
-        Expr<'id, S>,
-    ) -> (Expr<'id, O::Fwd>, Expr<'id, I::Bwd>, Expr<'id, S>),
+    F: Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
 > {
     /// Module name.
     module_name: String,
     /// FSM function.
     pub(crate) f: F,
     /// Initial value of registers in the FSM.
-    pub(crate) init: Expr<'static, S>,
+    pub(crate) init: Expr<S>,
     _marker: PhantomData<(I, O)>,
 }
 
@@ -32,15 +28,11 @@ impl<
         I: Interface,
         O: Interface,
         S: Signal,
-        F: for<'id> Fn(
-            Expr<'id, I::Fwd>,
-            Expr<'id, O::Bwd>,
-            Expr<'id, S>,
-        ) -> (Expr<'id, O::Fwd>, Expr<'id, I::Bwd>, Expr<'id, S>),
+        F: Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
     > Fsm<I, O, S, F>
 {
     /// Creates a new FSM.
-    pub fn new(module_name: &str, f: F, init: Expr<'static, S>) -> Self {
+    pub fn new(module_name: &str, f: F, init: Expr<S>) -> Self {
         Self { module_name: module_name.to_string(), f, init, _marker: PhantomData }
     }
 }
@@ -49,11 +41,7 @@ impl<
         I: Interface,
         O: Interface,
         S: Signal,
-        F: for<'id> Fn(
-            Expr<'id, I::Fwd>,
-            Expr<'id, O::Bwd>,
-            Expr<'id, S>,
-        ) -> (Expr<'id, O::Fwd>, Expr<'id, I::Bwd>, Expr<'id, S>),
+        F: Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
     > fmt::Debug for Fsm<I, O, S, F>
 {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -65,12 +53,7 @@ impl<
         I: Interface,
         O: Interface,
         S: Signal,
-        F: 'static
-            + for<'id> Fn(
-                Expr<'id, I::Fwd>,
-                Expr<'id, O::Bwd>,
-                Expr<'id, S>,
-            ) -> (Expr<'id, O::Fwd>, Expr<'id, I::Bwd>, Expr<'id, S>),
+        F: 'static + Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
     > From<Fsm<I, O, S, F>> for lir::Fsm
 {
     fn from(module: Fsm<I, O, S, F>) -> Self {

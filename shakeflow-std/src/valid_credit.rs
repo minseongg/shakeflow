@@ -14,14 +14,14 @@ pub struct Credit {
 }
 
 /// Credit Extension
-pub trait CreditExt<'id> {
+pub trait CreditExt {
     /// Creates a new expr.
-    fn new(credit: Expr<'id, bool>) -> Self;
+    fn new(credit: Expr<bool>) -> Self;
 }
 
-impl<'id> CreditExt<'id> for Expr<'id, Credit> {
+impl CreditExt for Expr<Credit> {
     /// Creates a new expr.
-    fn new(credit: Expr<'id, bool>) -> Self { CreditProj { credit }.into() }
+    fn new(credit: Expr<bool>) -> Self { CreditProj { credit }.into() }
 }
 
 /// Valid-credit channel.
@@ -57,12 +57,8 @@ impl<I: Signal, const P: Protocol> FsmExt<I> for VcChannel<I, P> {
     type Out<O: Signal> = VcChannel<O, P>;
 
     // TODO: Define more precise semantic of Valid-credit Channel.
-    fn fsm_map<
-        S: Signal,
-        O: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, I>, Expr<'id, S>) -> (Expr<'id, O>, Expr<'id, S>),
-    >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+    fn fsm_map<S: Signal, O: Signal, F: 'static + Fn(Expr<I>, Expr<S>) -> (Expr<O>, Expr<S>)>(
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> VcChannel<O, P> {
         self.fsm(k, module_name.or(Some("fsm_map")), init, move |input_fwd, output_bwd, state| {
             let input_fwd: ValidProj<I> = *input_fwd;

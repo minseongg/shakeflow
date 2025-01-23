@@ -1,15 +1,13 @@
 use proc_macro::{self, TokenStream};
-use proc_macro2::Span;
 use quote::quote;
-use syn::{parse_macro_input, DeriveInput, GenericParam, Lifetime, LifetimeDef};
+use syn::{parse_macro_input, DeriveInput};
 
 use super::utils::get_member_symbol;
 
 pub fn derive(input: TokenStream) -> TokenStream {
     let ast = parse_macro_input!(input as DeriveInput);
     let vis = &ast.vis;
-    let mut generics_lifetime = ast.generics.clone();
-    generics_lifetime.params.push(GenericParam::Lifetime(LifetimeDef::new(Lifetime::new("'id", Span::call_site()))));
+    let generics_lifetime = ast.generics.clone();
     let (impl_generics, ty_generics, where_clause) = ast.generics.split_for_impl();
     let (impl_generics_lifetime, ty_generics_lifetime, where_clause_lifetime) = generics_lifetime.split_for_impl();
     let name = &ast.ident;
@@ -29,7 +27,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
     let proj_struct_fields = fields.iter().map(|f| {
         let name = &f.ident;
         let ty = &f.ty;
-        quote! { #vis #name: Expr<'id, #ty> }
+        quote! { #vis #name: Expr<#ty> }
     });
 
     // TODO: Remove redundant clone
@@ -61,7 +59,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         if fields_count == 1 {
             quote! {
                 #[allow(missing_docs)]
-                #vis fn #setter_ident(self, #field_name: Expr<'id, #field_ty>) -> Expr<'id, #name #ty_generics> {
+                #vis fn #setter_ident(self, #field_name: Expr<#field_ty>) -> Expr<#name #ty_generics> {
                     #pident {
                         #field_name,
                     }.into()
@@ -70,7 +68,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         } else {
             quote! {
                 #[allow(missing_docs)]
-                #vis fn #setter_ident(self, #field_name: Expr<'id, #field_ty>) -> Expr<'id, #name #ty_generics> {
+                #vis fn #setter_ident(self, #field_name: Expr<#field_ty>) -> Expr<#name #ty_generics> {
                     #pident {
                         #field_name,
                         ..self
@@ -87,15 +85,15 @@ pub fn derive(input: TokenStream) -> TokenStream {
             #(#proj_struct_fields,)*
         }
         impl #impl_generics ExprProj for #name #ty_generics #where_clause {
-            type Target<'id> = #pident #ty_generics_lifetime;
-            fn proj<'id>(value: Expr<'id, Self>) -> Self::Target<'id> {
-                Self::Target::<'id> {
+            type Target = #pident #ty_generics_lifetime;
+            fn proj(value: Expr<Self>) -> Self::Target {
+                Self::Target {
                     #(#proj_fields,)*
                 }
             }
         }
-        impl #impl_generics_lifetime From<#pident #ty_generics_lifetime> for Expr<'id, #name #ty_generics> #where_clause {
-            fn from(projected: #pident #ty_generics_lifetime) -> Expr<'id, #name #ty_generics> {
+        impl #impl_generics_lifetime From<#pident #ty_generics_lifetime> for Expr<#name #ty_generics> #where_clause {
+            fn from(projected: #pident #ty_generics_lifetime) -> Expr<#name #ty_generics> {
                 Expr::from(lir::Expr::Struct {
                     inner: vec![
                         #(#unproj_fields,)*
@@ -107,7 +105,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         impl #impl_generics_lifetime #pident #ty_generics_lifetime #where_clause_lifetime {
             #(#setter_fields)*
         }
-        impl #impl_generics_lifetime lir::TableStorageElement<'id> for #pident #ty_generics_lifetime #where_clause_lifetime {}
+        impl #impl_generics_lifetime lir::TableStorageElement for #pident #ty_generics_lifetime #where_clause_lifetime {}
     };
     expanded.into()
 }

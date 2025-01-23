@@ -1,6 +1,6 @@
 //! Utilities for valid-ready channels.
 
-use std::marker::PhantomData;
+use std::marker::{ConstParamTy, PhantomData};
 
 use shakeflow_macro::Signal;
 
@@ -19,7 +19,7 @@ use crate::*;
 ///
 /// In shakeflow, protocol indicates the constraint for consumer module's ready calculation.
 /// For example, if a channel's type is demanding, the consumer of this channel must be Helpful.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, ConstParamTy)]
 pub enum Protocol {
     /// Helpful. It offers the information up-front.
     ///
@@ -80,32 +80,32 @@ pub struct Ready {
 }
 
 /// ValidExt
-pub trait ValidExt<'id, V: Signal> {
+pub trait ValidExt<V: Signal> {
     /// Creates a new expr.
-    fn new(valid: Expr<'id, bool>, inner: Expr<'id, V>) -> Self;
+    fn new(valid: Expr<bool>, inner: Expr<V>) -> Self;
 
     /// Creates a new array of exprs.
-    fn new_arr<N: Num>(valid: Expr<'id, Bits<N>>, inner: Expr<'id, Array<V, N>>) -> Expr<'id, Array<Valid<V>, N>>;
+    fn new_arr<N: Num>(valid: Expr<Bits<N>>, inner: Expr<Array<V, N>>) -> Expr<Array<Valid<V>, N>>;
 
     /// Creates an invalid expr.
-    fn invalid() -> Expr<'id, Valid<V>>;
+    fn invalid() -> Expr<Valid<V>>;
 
     /// Creates an valid expr.
-    fn valid(inner: Expr<'id, V>) -> Expr<'id, Valid<V>>;
+    fn valid(inner: Expr<V>) -> Expr<Valid<V>>;
 
     /// Maps the inner value.
-    fn map_inner<W: Signal>(self, f: fn(Expr<'id, V>) -> Expr<'id, W>) -> Expr<'id, Valid<W>>;
+    fn map_inner<W: Signal>(self, f: fn(Expr<V>) -> Expr<W>) -> Expr<Valid<W>>;
 
     /// Zips the inner value with other value.
-    fn zip_inner<W: Signal>(self, other: Expr<'id, W>) -> Expr<'id, Valid<(V, W)>>;
+    fn zip_inner<W: Signal>(self, other: Expr<W>) -> Expr<Valid<(V, W)>>;
 }
 
-impl<'id, V: Signal> ValidExt<'id, V> for Expr<'id, Valid<V>> {
+impl<V: Signal> ValidExt<V> for Expr<Valid<V>> {
     /// Creates a new expr.
-    fn new(valid: Expr<'id, bool>, inner: Expr<'id, V>) -> Self { ValidProj { inner, valid }.into() }
+    fn new(valid: Expr<bool>, inner: Expr<V>) -> Self { ValidProj { inner, valid }.into() }
 
     /// Creates a new array of exprs.
-    fn new_arr<N: Num>(valid: Expr<'id, Bits<N>>, inner: Expr<'id, Array<V, N>>) -> Expr<'id, Array<Valid<V>, N>> {
+    fn new_arr<N: Num>(valid: Expr<Bits<N>>, inner: Expr<Array<V, N>>) -> Expr<Array<Valid<V>, N>> {
         lir::Expr::Struct { inner: vec![(None, inner.into_inner()), (Some("valid".to_string()), valid.into_inner())] }
             .into()
     }
@@ -114,44 +114,39 @@ impl<'id, V: Signal> ValidExt<'id, V> for Expr<'id, Valid<V>> {
     fn invalid() -> Self { Self::new(false.into(), Expr::x()) }
 
     /// Creates an valid expr.
-    fn valid(inner: Expr<'id, V>) -> Self { Self::new(true.into(), inner) }
+    fn valid(inner: Expr<V>) -> Self { Self::new(true.into(), inner) }
 
     /// Maps the inner value.
-    fn map_inner<W: Signal>(self, f: fn(Expr<'id, V>) -> Expr<'id, W>) -> Expr<'id, Valid<W>> {
+    fn map_inner<W: Signal>(self, f: fn(Expr<V>) -> Expr<W>) -> Expr<Valid<W>> {
         ValidProj { inner: f(self.inner), valid: self.valid }.into()
     }
 
     /// Zips the inner value with other value.
-    fn zip_inner<W: Signal>(self, other: Expr<'id, W>) -> Expr<'id, Valid<(V, W)>> {
+    fn zip_inner<W: Signal>(self, other: Expr<W>) -> Expr<Valid<(V, W)>> {
         ValidProj { inner: (self.inner, other).into(), valid: self.valid }.into()
     }
 }
 
 /// Ready Extension
-pub trait ReadyExt<'id> {
+pub trait ReadyExt {
     /// Creates a new expr.
-    fn new(ready: Expr<'id, bool>) -> Self;
+    fn new(ready: Expr<bool>) -> Self;
 
     /// Creates a new array of exprs.
-    fn new_arr<N: Num>(ready: Expr<'id, Bits<N>>) -> Expr<'id, Array<Ready, N>>;
+    fn new_arr<N: Num>(ready: Expr<Bits<N>>) -> Expr<Array<Ready, N>>;
 }
 
-impl<'id> ReadyExt<'id> for Expr<'id, Ready> {
+impl ReadyExt for Expr<Ready> {
     /// Creates a new expr.
-    fn new(ready: Expr<'id, bool>) -> Expr<'id, Ready> { ReadyProj { ready }.into() }
+    fn new(ready: Expr<bool>) -> Expr<Ready> { ReadyProj { ready }.into() }
 
     /// Creates a new array of exprs.
-    fn new_arr<N: Num>(ready: Expr<'id, Bits<N>>) -> Expr<'id, Array<Ready, N>> {
+    fn new_arr<N: Num>(ready: Expr<Bits<N>>) -> Expr<Array<Ready, N>> {
         lir::Expr::Struct { inner: vec![(Some("ready".to_string()), ready.into_inner())] }.into()
     }
 }
 
-fn m_split_map<
-    I: Signal,
-    O1: Signal,
-    O2: Signal,
-    F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, (bool, O1, O2)>,
->(
+fn m_split_map<I: Signal, O1: Signal, O2: Signal, F: 'static + Fn(Expr<I>) -> Expr<(bool, O1, O2)>>(
     f: F,
 ) -> Module<VrChannel<I>, (VrChannel<O1>, VrChannel<O2>)> {
     composite::<VrChannel<I>, (VrChannel<O1>, VrChannel<O2>), _>("split_map", Some("in"), Some("out"), |input, k| {
@@ -379,11 +374,8 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     /// - P3 again, and onwards: `done` is false, and the fsm keeps receiving packets
     ///                          until `f()` computes `done` to be TRUE again.
     ///
-    pub fn fsm_ingress<
-        S: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, I>, Expr<'id, S>) -> (Expr<'id, S>, Expr<'id, bool>),
-    >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+    pub fn fsm_ingress<S: Signal, F: 'static + Fn(Expr<I>, Expr<S>) -> (Expr<S>, Expr<bool>)>(
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> VrChannel<S, P> {
         self.fsm::<(S, bool), VrChannel<S, P>, _>(
             k,
@@ -405,12 +397,8 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     }
 
     /// TODO: Remove this
-    pub fn fsm_fwd<
-        S: Signal,
-        O: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, Valid<I>>, Expr<'id, S>) -> (Expr<'id, Valid<O>>, Expr<'id, S>),
-    >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+    pub fn fsm_fwd<S: Signal, O: Signal, F: 'static + Fn(Expr<Valid<I>>, Expr<S>) -> (Expr<Valid<O>>, Expr<S>)>(
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> VrChannel<O, P> {
         self.fsm::<_, VrChannel<_, P>, _>(k, module_name.or(Some("fsm_fwd")), init, move |fwd, bwd, s| {
             let (fwd_next, s_next) = f(fwd, s);
@@ -425,19 +413,15 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     ///
     /// Once the resulting channel's output becomes valid, it must remain the same until it's
     /// transferred.
-    pub fn map_fwd<O: Signal, F: 'static + for<'id> Fn(Expr<'id, Valid<I>>) -> Expr<'id, Valid<O>>>(
+    pub fn map_fwd<O: Signal, F: 'static + Fn(Expr<Valid<I>>) -> Expr<Valid<O>>>(
         self, k: &mut CompositeModuleContext, module_name: Option<&str>, f: F,
     ) -> VrChannel<O, P> {
         self.fsm_fwd(k, module_name.or(Some("map_fwd")), ().into(), move |i, s| (f(i), s))
     }
 
     /// TODO: documentation
-    pub fn fsm_and_then<
-        S: Signal,
-        O: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, I>, Expr<'id, S>) -> (Expr<'id, Valid<O>>, Expr<'id, S>),
-    >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+    pub fn fsm_and_then<S: Signal, O: Signal, F: 'static + Fn(Expr<I>, Expr<S>) -> (Expr<Valid<O>>, Expr<S>)>(
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> VrChannel<O, { Protocol::Demanding }> {
         self.fsm::<_, VrChannel<_, { Protocol::Demanding }>, _>(
             k,
@@ -457,7 +441,7 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     }
 
     /// TODO: Documentation
-    pub fn and_then<O: Signal, F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, Valid<O>>>(
+    pub fn and_then<O: Signal, F: 'static + Fn(Expr<I>) -> Expr<Valid<O>>>(
         self, k: &mut CompositeModuleContext, module_name: Option<&str>, f: F,
     ) -> VrChannel<O, { Protocol::Demanding }> {
         self.fsm_and_then(k, module_name.or(Some("and_then")), ().into(), move |i, s| (f(i), s))
@@ -565,21 +549,21 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
 
 impl<I: Signal> VrChannel<I> {
     /// Generates unit values indefinitely.
-    pub fn source(k: &mut CompositeModuleContext, value: Expr<'static, I>) -> Self {
+    pub fn source(k: &mut CompositeModuleContext, value: Expr<I>) -> Self {
         ().fsm(k, Some("source"), ().into(), move |_fwd, _bwd, state| {
             (ValidProj { inner: value, valid: true.into() }.into(), ().into(), state)
         })
     }
 
     /// TODO: documentation
-    pub fn split_map<O1: Signal, O2: Signal, F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, (bool, O1, O2)>>(
+    pub fn split_map<O1: Signal, O2: Signal, F: 'static + Fn(Expr<I>) -> Expr<(bool, O1, O2)>>(
         self, k: &mut CompositeModuleContext, f: F,
     ) -> (VrChannel<O1>, VrChannel<O2>) {
         self.comb_inline(k, m_split_map(f))
     }
 
     /// TODO: documentation
-    pub fn filter_map<O: Signal, F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, (bool, O)>>(
+    pub fn filter_map<O: Signal, F: 'static + Fn(Expr<I>) -> Expr<(bool, O)>>(
         self, k: &mut CompositeModuleContext, f: F,
     ) -> VrChannel<O> {
         let (take, drop) = self.split_map(k, move |i| {
@@ -591,7 +575,7 @@ impl<I: Signal> VrChannel<I> {
     }
 
     /// TODO: documentation
-    pub fn assert_map<O: Signal, F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, (bool, O)>>(
+    pub fn assert_map<O: Signal, F: 'static + Fn(Expr<I>) -> Expr<(bool, O)>>(
         self, k: &mut CompositeModuleContext, f: F,
     ) -> VrChannel<O> {
         let (take, drop) = self.split_map(k, move |i| {
@@ -604,9 +588,7 @@ impl<I: Signal> VrChannel<I> {
 
     /// TODO: documentation
     #[must_use]
-    pub fn filter<F: 'static + for<'id> Fn(Expr<'id, I>) -> Expr<'id, bool>>(
-        self, k: &mut CompositeModuleContext, f: F,
-    ) -> VrChannel<I> {
+    pub fn filter<F: 'static + Fn(Expr<I>) -> Expr<bool>>(self, k: &mut CompositeModuleContext, f: F) -> VrChannel<I> {
         self.filter_map(k, move |i| (f(i), i).into())
     }
 
@@ -635,12 +617,8 @@ impl<I: Signal> VrChannel<I> {
     }
 
     /// Runs an FSM from the egress valid/ready channel.
-    pub fn fsm_egress<
-        S: Signal,
-        O: Signal,
-        F: 'static + for<'id> Fn(Expr<'id, I>, Expr<'id, S>) -> (Expr<'id, O>, Expr<'id, S>, Expr<'id, bool>),
-    >(
-        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<'static, S>, f: F,
+    pub fn fsm_egress<S: Signal, O: Signal, F: 'static + Fn(Expr<I>, Expr<S>) -> (Expr<O>, Expr<S>, Expr<bool>)>(
+        self, k: &mut CompositeModuleContext, module_name: Option<&str>, init: Expr<S>, f: F,
     ) -> VrChannel<O> {
         self.fsm::<S, VrChannel<O>, _>(
             k,

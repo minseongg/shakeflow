@@ -24,19 +24,19 @@ impl From<f32> for FP32 {
     fn from(value: f32) -> Self { u32_to_bits(value.to_bits()).into() }
 }
 
-impl<'id> Expr<'id, FP32> {
+impl Expr<FP32> {
     /// Creates new FP32 expr.
-    pub fn new(inner: Expr<'id, Bits<U<32>>>) -> Self { FP32Proj { inner }.into() }
+    pub fn new(inner: Expr<Bits<U<32>>>) -> Self { FP32Proj { inner }.into() }
 }
 
-impl<'id> From<f32> for Expr<'id, FP32> {
+impl From<f32> for Expr<FP32> {
     fn from(value: f32) -> Self { Self::new(Expr::<Bits<U<32>>>::from(value.to_bits() as usize)) }
 }
 
-impl<'id> Add<Expr<'id, FP32>> for Expr<'id, FP32> {
-    type Output = Expr<'id, FP32>;
+impl Add<Expr<FP32>> for Expr<FP32> {
+    type Output = Expr<FP32>;
 
-    fn add(self, rhs: Expr<'id, FP32>) -> Self::Output {
+    fn add(self, rhs: Expr<FP32>) -> Self::Output {
         let lhs = self.inner;
         let rhs = rhs.inner;
 
@@ -51,10 +51,10 @@ impl<'id> Add<Expr<'id, FP32>> for Expr<'id, FP32> {
     }
 }
 
-impl<'id> Sub<Expr<'id, FP32>> for Expr<'id, FP32> {
-    type Output = Expr<'id, FP32>;
+impl Sub<Expr<FP32>> for Expr<FP32> {
+    type Output = Expr<FP32>;
 
-    fn sub(self, rhs: Expr<'id, FP32>) -> Self::Output {
+    fn sub(self, rhs: Expr<FP32>) -> Self::Output {
         let lhs = self.inner;
         let rhs = rhs.inner;
 
@@ -69,10 +69,10 @@ impl<'id> Sub<Expr<'id, FP32>> for Expr<'id, FP32> {
     }
 }
 
-impl<'id> Mul<Expr<'id, FP32>> for Expr<'id, FP32> {
-    type Output = Expr<'id, FP32>;
+impl Mul<Expr<FP32>> for Expr<FP32> {
+    type Output = Expr<FP32>;
 
-    fn mul(self, rhs: Expr<'id, FP32>) -> Self::Output {
+    fn mul(self, rhs: Expr<FP32>) -> Self::Output {
         let lhs = self.inner;
         let rhs = rhs.inner;
 
@@ -87,10 +87,10 @@ impl<'id> Mul<Expr<'id, FP32>> for Expr<'id, FP32> {
     }
 }
 
-impl<'id> Div<Expr<'id, FP32>> for Expr<'id, FP32> {
-    type Output = Expr<'id, FP32>;
+impl Div<Expr<FP32>> for Expr<FP32> {
+    type Output = Expr<FP32>;
 
-    fn div(self, rhs: Expr<'id, FP32>) -> Self::Output {
+    fn div(self, rhs: Expr<FP32>) -> Self::Output {
         let lhs = self.inner;
         let rhs = rhs.inner;
 
@@ -105,34 +105,34 @@ impl<'id> Div<Expr<'id, FP32>> for Expr<'id, FP32> {
     }
 }
 
-impl<'id> Expr<'id, FP32> {
+impl Expr<FP32> {
     /// Check two exprs are equal.
-    pub fn is_eq(&self, other: Expr<'id, FP32>) -> Expr<'id, bool> {
+    pub fn is_eq(&self, other: Expr<FP32>) -> Expr<bool> {
         let rhs = self.inner;
         let lhs = other.inner;
         rhs.is_eq(lhs)
     }
 
     /// Check `self` is less than `other`.
-    pub fn is_lt(&self, other: Expr<'id, FP32>) -> Expr<'id, bool> {
+    pub fn is_lt(&self, other: Expr<FP32>) -> Expr<bool> {
         let diff = *self - other;
         diff.inner[31].repr().is_eq(Expr::from(1))
     }
 
     /// Check `self` is greater than `other`.
-    pub fn is_gt(&self, other: Expr<'id, FP32>) -> Expr<'id, bool> {
+    pub fn is_gt(&self, other: Expr<FP32>) -> Expr<bool> {
         let diff = *self - other;
         diff.inner[31].repr().is_eq(Expr::from(0)) & !diff.inner.is_eq(Expr::from(0))
     }
 
     /// Check `self` is less or equal than `other`.
-    pub fn is_le(&self, other: Expr<'id, FP32>) -> Expr<'id, bool> {
+    pub fn is_le(&self, other: Expr<FP32>) -> Expr<bool> {
         let diff = *self - other;
         diff.inner[31].repr().is_eq(Expr::from(1)) | diff.inner.is_eq(Expr::from(0))
     }
 
     /// Check `self` is greater or equal than `other`.
-    pub fn is_ge(&self, other: Expr<'id, FP32>) -> Expr<'id, bool> {
+    pub fn is_ge(&self, other: Expr<FP32>) -> Expr<bool> {
         let diff = *self - other;
         diff.inner[31].repr().is_eq(Expr::from(0))
     }

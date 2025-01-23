@@ -219,13 +219,13 @@ pub(super) fn get_var_arr_impls(input: TokenStream, input_var_arr: TokenStream) 
     let expanded = quote! {
         #[allow(missing_docs)]
         impl #impl_generics_var_arr #name_var_arr #ty_generics_var_arr #where_clause {
-            #vis fn new_expr<'id>() -> Expr<'id, Self> {
+            #vis fn new_expr() -> Expr<Self> {
                 #pident_var_arr {
                     #(#new_fields,)*
                 }
                 .into()
             }
-            #vis fn get_entry<'id>(value: Expr<'id, Self>, index: Expr<'id, Bits<num::Log2<num::U<ELTS>>>>) -> Expr<'id, #name #ty_generics> {
+            #vis fn get_entry(value: Expr<Self>, index: Expr<Bits<num::Log2<num::U<ELTS>>>>) -> Expr<#name #ty_generics> {
                 #pident {
                     #(#get_entry_fields,)*
                 }

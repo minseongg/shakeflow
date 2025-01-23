@@ -14,7 +14,7 @@ struct State<V: Signal> {
 }
 
 /// Creates a buffer module.
-fn m<V: Signal>(init: Expr<'static, V>) -> Module<UniChannel<V>, UniChannel<V>> {
+fn m<V: Signal>(init: Expr<V>) -> Module<UniChannel<V>, UniChannel<V>> {
     composite::<UniChannel<V>, UniChannel<V>, _>("buffer", Some("in"), Some("out"), |value, k| {
         value.fsm_map(k, None, StateProj { inner: init }.into(), |value, state| {
             (state.inner, StateProj { inner: value }.into())
@@ -24,7 +24,7 @@ fn m<V: Signal>(init: Expr<'static, V>) -> Module<UniChannel<V>, UniChannel<V>> 
 }
 
 /// Creates a buffer module with enable signal.
-fn m_en<V: Signal>(init: Expr<'static, V>) -> Module<UniChannel<(V, bool)>, UniChannel<V>> {
+fn m_en<V: Signal>(init: Expr<V>) -> Module<UniChannel<(V, bool)>, UniChannel<V>> {
     composite::<UniChannel<(V, bool)>, UniChannel<V>, _>("buffer_en", Some("in"), Some("out"), |value, k| {
         value.fsm_map(k, None, StateProj { inner: init }.into(), move |value, state| {
             let (value, en) = *value;
@@ -36,7 +36,7 @@ fn m_en<V: Signal>(init: Expr<'static, V>) -> Module<UniChannel<(V, bool)>, UniC
 
 /// Creates a buffer module with delay
 fn m_buffer_cycles<V: Signal, const STAGES: usize>(
-    init: Expr<'static, V>, delay: usize,
+    init: Expr<V>, delay: usize,
 ) -> Module<UniChannel<V>, UniChannel<V>> {
     assert!(STAGES >= delay);
 
@@ -149,7 +149,7 @@ fn m_fifo<V: Signal, const N: usize, const P: Protocol>() -> Module<VrChannel<V,
 
 impl<I: Signal> UniChannel<Valid<I>> {
     /// Creates a buffer module with valid/ready channel as an input, which updates when valid.
-    pub fn buffer_valid(self, k: &mut CompositeModuleContext, init: Expr<'static, I>) -> UniChannel<I> {
+    pub fn buffer_valid(self, k: &mut CompositeModuleContext, init: Expr<I>) -> UniChannel<I> {
         let valid = self.clone().map(k, |input| input.valid);
         self.map(k, |input| input.inner).buffer_en(k, init, valid)
     }
@@ -158,16 +158,16 @@ impl<I: Signal> UniChannel<Valid<I>> {
 impl<I: Signal> UniChannel<I> {
     /// Adds a buffer.
     #[must_use]
-    pub fn buffer(self, k: &mut CompositeModuleContext, init: Expr<'static, I>) -> Self { self.comb_inline(k, m(init)) }
+    pub fn buffer(self, k: &mut CompositeModuleContext, init: Expr<I>) -> Self { self.comb_inline(k, m(init)) }
 
     /// Adds a buffer with enable signal.
-    pub fn buffer_en(self, k: &mut CompositeModuleContext, init: Expr<'static, I>, en: UniChannel<bool>) -> Self {
+    pub fn buffer_en(self, k: &mut CompositeModuleContext, init: Expr<I>, en: UniChannel<bool>) -> Self {
         self.zip(k, en).comb_inline(k, m_en(init))
     }
 
     /// Adds a buffer with n-cycle delays.
     pub fn buffer_with_delay<const STAGES: usize>(
-        self, k: &mut CompositeModuleContext, init: Expr<'static, I>, delay: usize,
+        self, k: &mut CompositeModuleContext, init: Expr<I>, delay: usize,
     ) -> Self {
         self.comb_inline(k, m_buffer_cycles::<I, STAGES>(init, delay))
     }

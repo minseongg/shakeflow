@@ -145,7 +145,7 @@ struct DescTable<const DESC_TABLE_SIZE: usize, const DMA_CLIENT_LEN_WIDTH: usize
 impl<const DESC_TABLE_SIZE: usize, const DMA_CLIENT_LEN_WIDTH: usize, const REQ_TAG_WIDTH: usize>
     DescTable<DESC_TABLE_SIZE, DMA_CLIENT_LEN_WIDTH, REQ_TAG_WIDTH>
 {
-    fn new_expr() -> Expr<'static, Self> {
+    fn new_expr() -> Expr<Self> {
         DescTableProj {
             entries: DescTableEntryVarArr::new_expr(),
             buf_wr_ptr: 0.into(),
