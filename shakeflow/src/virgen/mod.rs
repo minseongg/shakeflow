@@ -22,8 +22,8 @@ impl Package {
         let name = format!("{}_inner", module.get_module_name());
         let module: vir::Module =
             gen_module::<Virgen>(name, module).map_err(|error| PackageError::Module { error })?.into();
-        let module = vir::opt::wire_cache_opt(module);
-        let module = vir::opt::dead_code_opt(module);
+        let module = opt::wire_cache_opt(module);
+        let module = opt::dead_code_opt(module);
 
         writeln!(file, "{}", module.to_string()).map_err(|error| PackageError::Fs { error })?;
 
@@ -343,11 +343,11 @@ impl Codegen for Virgen {
             .map(|(shape, name, init_value)| {
                 let init_value = if !init_value.is_empty() && !(init_value[0] == LogicValue::X) {
                     if init_value.iter().all(|x| *x == LogicValue::False) {
-                        Some(vir::Expression::number(format!("{}'b0", init_value.len())))
+                        Some(Expression::number(format!("{}'b0", init_value.len())))
                     } else if init_value.iter().all(|x| *x == LogicValue::X) {
-                        Some(vir::Expression::number(format!("{}'bx", init_value.len())))
+                        Some(Expression::number(format!("{}'bx", init_value.len())))
                     } else {
-                        Some(vir::Expression::number(format!("{}'b{}", init_value.len(), init_value.to_string())))
+                        Some(Expression::number(format!("{}'b{}", init_value.len(), init_value.to_string())))
                     }
                 } else {
                     None
@@ -372,18 +372,15 @@ impl Codegen for Virgen {
                 }
 
                 // Add conts
-                conts.push(vir::ContinuousAssign::new(
-                    vir::Expression::ident(net_name.clone()),
-                    vir::Expression::ident(reg_name),
-                ));
+                conts.push(ContinuousAssign::new(Expression::ident(net_name.clone()), Expression::ident(reg_name)));
             });
 
             if !decls.is_empty() {
-                module_items.push(vir::ModuleItem::Declarations(decls));
+                module_items.push(ModuleItem::Declarations(decls));
             }
 
             if !conts.is_empty() {
-                module_items.push(vir::ModuleItem::ContinuousAssigns(conts));
+                module_items.push(ModuleItem::ContinuousAssigns(conts));
             }
         }
 
@@ -397,12 +394,11 @@ impl Codegen for Virgen {
 
                 let int_name = int_name.get_or_insert(ctx.alloc_int_id());
                 let body = vec![Statement::blocking_assignment(
-                    vir::Expression::ident(reg_name)
-                        .with_range(vir::Range::new_index(vir::Expression::ident(int_name.clone()))),
-                    vir::Expression::number("0".to_string()),
+                    Expression::ident(reg_name).with_range(Range::new_index(Expression::ident(int_name.clone()))),
+                    Expression::number("0".to_string()),
                 )];
 
-                stmts.push(Statement::Loop(int_name.clone(), vir::Expression::number(shape.get(0).to_string()), body));
+                stmts.push(Statement::Loop(int_name.clone(), Expression::number(shape.get(0).to_string()), body));
             });
 
             if let Some(int_name) = int_name {
@@ -410,11 +406,11 @@ impl Codegen for Virgen {
             }
 
             if !decls.is_empty() {
-                module_items.push(vir::ModuleItem::Declarations(decls));
+                module_items.push(ModuleItem::Declarations(decls));
             }
 
             if !stmts.is_empty() {
-                module_items.push(vir::ModuleItem::AlwaysConstruct("initial".to_string(), stmts));
+                module_items.push(ModuleItem::AlwaysConstruct("initial".to_string(), stmts));
             }
         }
 
@@ -465,19 +461,19 @@ impl Codegen for Virgen {
                     }
                 })
                 .for_each(|(reg_name, expr)| {
-                    stmts_rst.push(Statement::nonblocking_assignment(vir::Expression::ident(reg_name), expr.clone()));
+                    stmts_rst.push(Statement::nonblocking_assignment(Expression::ident(reg_name), expr.clone()));
                 });
 
             if !stmts_rst.is_empty() {
-                stmts.push(Statement::Conditional(vir::Expression::ident("rst".to_string()), stmts_rst, Vec::new()));
+                stmts.push(Statement::Conditional(Expression::ident("rst".to_string()), stmts_rst, Vec::new()));
             }
 
             if !decls.is_empty() {
-                module_items.push(vir::ModuleItem::Declarations(decls));
+                module_items.push(ModuleItem::Declarations(decls));
             }
 
             if !stmts.is_empty() {
-                module_items.push(vir::ModuleItem::AlwaysConstruct("always @(posedge clk)".to_string(), stmts));
+                module_items.push(ModuleItem::AlwaysConstruct("always @(posedge clk)".to_string(), stmts));
             }
         }
 
@@ -488,19 +484,17 @@ impl Codegen for Virgen {
     fn gen_module_inst(
         &self, module: &lir::ModuleInst, ctx: &mut Context,
     ) -> Result<Vec<ModuleItem>, lir::ModuleError> {
-        let connections = gen_connections(module, ctx)?
-            .into_iter()
-            .map(|(_, port, expr)| (port, vir::Expression::ident(expr)))
-            .collect();
+        let connections =
+            gen_connections(module, ctx)?.into_iter().map(|(_, port, expr)| (port, Expression::ident(expr))).collect();
 
-        let module_inst = vir::ModuleInstantiation::new(
+        let module_inst = ModuleInstantiation::new(
             module.get_module_name(),
             module.inst_name.clone(),
             module.params.clone(),
             connections,
         );
 
-        Ok(vec![vir::ModuleItem::ModuleInstantiation(module_inst)])
+        Ok(vec![ModuleItem::ModuleInstantiation(module_inst)])
     }
 
     /// Generated connections for virtual module
@@ -511,26 +505,26 @@ impl Codegen for Virgen {
             .into_iter()
             .map(|(lvalue, lvalue_range, rvalue, rvalue_range)| {
                 let lvalue_expr = match lvalue_range {
-                    Some((index, elt_size)) => vir::Expression::ident(lvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    Some((index, elt_size)) => Expression::ident(lvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::number(index.to_string()),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ),
-                        vir::Expression::number(elt_size.to_string()),
+                        Expression::number(elt_size.to_string()),
                     )),
-                    None => vir::Expression::ident(lvalue),
+                    None => Expression::ident(lvalue),
                 };
                 let rvalue_expr = match rvalue_range {
-                    Some((index, elt_size)) => vir::Expression::ident(rvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    Some((index, elt_size)) => Expression::ident(rvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::number(index.to_string()),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ),
-                        vir::Expression::number(elt_size.to_string()),
+                        Expression::number(elt_size.to_string()),
                     )),
-                    None => vir::Expression::ident(rvalue),
+                    None => Expression::ident(rvalue),
                 };
                 ContinuousAssign::new(lvalue_expr, rvalue_expr)
             })
@@ -549,26 +543,26 @@ impl Virgen {
             .into_iter()
             .map(|(lvalue, lvalue_range, rvalue, rvalue_range)| {
                 let lvalue_expr = match lvalue_range {
-                    Some((index, elt_size)) => vir::Expression::ident(lvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    Some((index, elt_size)) => Expression::ident(lvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::number(index.to_string()),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ),
-                        vir::Expression::number(elt_size.to_string()),
+                        Expression::number(elt_size.to_string()),
                     )),
-                    None => vir::Expression::ident(lvalue),
+                    None => Expression::ident(lvalue),
                 };
                 let rvalue_expr = match rvalue_range {
-                    Some((index, elt_size)) => vir::Expression::ident(rvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    Some((index, elt_size)) => Expression::ident(rvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::number(index.to_string()),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ),
-                        vir::Expression::number(elt_size.to_string()),
+                        Expression::number(elt_size.to_string()),
                     )),
-                    None => vir::Expression::ident(rvalue),
+                    None => Expression::ident(rvalue),
                 };
                 ContinuousAssign::new(lvalue_expr, rvalue_expr)
             })
@@ -584,81 +578,77 @@ impl Virgen {
             .map(|(lvalue, lvalue_generate, lvalue_range, rvalue, rvalue_generate, rvalue_range)| {
                 let lvalue_expr = match (lvalue_generate, lvalue_range) {
                     (Some(gen_size), Some((index, elt_size))) => {
-                        vir::Expression::ident(lvalue).with_range(vir::Range::new_range(
-                            vir::Expression::binary(
+                        Expression::ident(lvalue).with_range(Range::new_range(
+                            Expression::binary(
                                 lir::BinaryOp::Add,
-                                vir::Expression::binary(
+                                Expression::binary(
                                     lir::BinaryOp::Mul,
-                                    vir::Expression::ident(genvar_id.to_string()),
-                                    vir::Expression::number(gen_size.to_string()),
+                                    Expression::ident(genvar_id.to_string()),
+                                    Expression::number(gen_size.to_string()),
                                 ),
-                                vir::Expression::binary(
+                                Expression::binary(
                                     lir::BinaryOp::Mul,
-                                    vir::Expression::number(index.to_string()),
-                                    vir::Expression::number(elt_size.to_string()),
+                                    Expression::number(index.to_string()),
+                                    Expression::number(elt_size.to_string()),
                                 ),
                             ),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ))
                     }
-                    (Some(gen_size), None) => vir::Expression::ident(lvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    (Some(gen_size), None) => Expression::ident(lvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::ident(genvar_id.to_string()),
-                            vir::Expression::number(gen_size.to_string()),
+                            Expression::ident(genvar_id.to_string()),
+                            Expression::number(gen_size.to_string()),
                         ),
-                        vir::Expression::number(gen_size.to_string()),
+                        Expression::number(gen_size.to_string()),
                     )),
-                    (None, Some((index, elt_size))) => {
-                        vir::Expression::ident(lvalue).with_range(vir::Range::new_range(
-                            vir::Expression::binary(
-                                lir::BinaryOp::Mul,
-                                vir::Expression::number(index.to_string()),
-                                vir::Expression::number(elt_size.to_string()),
-                            ),
-                            vir::Expression::number(elt_size.to_string()),
-                        ))
-                    }
-                    (None, None) => vir::Expression::ident(lvalue),
+                    (None, Some((index, elt_size))) => Expression::ident(lvalue).with_range(Range::new_range(
+                        Expression::binary(
+                            lir::BinaryOp::Mul,
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
+                        ),
+                        Expression::number(elt_size.to_string()),
+                    )),
+                    (None, None) => Expression::ident(lvalue),
                 };
                 let rvalue_expr = match (rvalue_generate, rvalue_range) {
                     (Some(gen_size), Some((index, elt_size))) => {
-                        vir::Expression::ident(rvalue).with_range(vir::Range::new_range(
-                            vir::Expression::binary(
+                        Expression::ident(rvalue).with_range(Range::new_range(
+                            Expression::binary(
                                 lir::BinaryOp::Add,
-                                vir::Expression::binary(
+                                Expression::binary(
                                     lir::BinaryOp::Mul,
-                                    vir::Expression::ident(genvar_id.to_string()),
-                                    vir::Expression::number(gen_size.to_string()),
+                                    Expression::ident(genvar_id.to_string()),
+                                    Expression::number(gen_size.to_string()),
                                 ),
-                                vir::Expression::binary(
+                                Expression::binary(
                                     lir::BinaryOp::Mul,
-                                    vir::Expression::number(index.to_string()),
-                                    vir::Expression::number(elt_size.to_string()),
+                                    Expression::number(index.to_string()),
+                                    Expression::number(elt_size.to_string()),
                                 ),
                             ),
-                            vir::Expression::number(elt_size.to_string()),
+                            Expression::number(elt_size.to_string()),
                         ))
                     }
-                    (Some(gen_size), None) => vir::Expression::ident(rvalue).with_range(vir::Range::new_range(
-                        vir::Expression::binary(
+                    (Some(gen_size), None) => Expression::ident(rvalue).with_range(Range::new_range(
+                        Expression::binary(
                             lir::BinaryOp::Mul,
-                            vir::Expression::ident(genvar_id.to_string()),
-                            vir::Expression::number(gen_size.to_string()),
+                            Expression::ident(genvar_id.to_string()),
+                            Expression::number(gen_size.to_string()),
                         ),
-                        vir::Expression::number(gen_size.to_string()),
+                        Expression::number(gen_size.to_string()),
                     )),
-                    (None, Some((index, elt_size))) => {
-                        vir::Expression::ident(rvalue).with_range(vir::Range::new_range(
-                            vir::Expression::binary(
-                                lir::BinaryOp::Mul,
-                                vir::Expression::number(index.to_string()),
-                                vir::Expression::number(elt_size.to_string()),
-                            ),
-                            vir::Expression::number(elt_size.to_string()),
-                        ))
-                    }
-                    (None, None) => vir::Expression::ident(rvalue),
+                    (None, Some((index, elt_size))) => Expression::ident(rvalue).with_range(Range::new_range(
+                        Expression::binary(
+                            lir::BinaryOp::Mul,
+                            Expression::number(index.to_string()),
+                            Expression::number(elt_size.to_string()),
+                        ),
+                        Expression::number(elt_size.to_string()),
+                    )),
+                    (None, None) => Expression::ident(rvalue),
                 };
                 ContinuousAssign::new(lvalue_expr, rvalue_expr)
             })
@@ -679,23 +669,23 @@ impl Virgen {
         let mut conts = vec![];
 
         for (_, var_name, expr) in assignments {
-            conts.push(vir::ContinuousAssign::new(vir::Expression::ident(var_name), expr));
+            conts.push(ContinuousAssign::new(Expression::ident(var_name), expr));
         }
 
         let mut module_items = vec![];
 
         if !decls.is_empty() {
-            module_items.push(vir::ModuleItem::Declarations(decls));
+            module_items.push(ModuleItem::Declarations(decls));
         }
 
         if !conts.is_empty() {
-            module_items.push(vir::ModuleItem::ContinuousAssigns(conts));
+            module_items.push(ModuleItem::ContinuousAssigns(conts));
         }
 
         if !stmts.is_empty() {
             // TODO: Make internal logic a function
-            module_items.push(vir::ModuleItem::AlwaysConstruct("initial".to_string(), stmts.clone()));
-            module_items.push(vir::ModuleItem::AlwaysConstruct("always @*".to_string(), stmts));
+            module_items.push(ModuleItem::AlwaysConstruct("initial".to_string(), stmts.clone()));
+            module_items.push(ModuleItem::AlwaysConstruct("always @*".to_string(), stmts));
         }
 
         Ok(module_items)
@@ -714,7 +704,7 @@ impl Virgen {
 
         for (_, var_name, expr) in assignments {
             let reg_name = format!("{}_reg", var_name);
-            stmts.push(Statement::nonblocking_assignment(vir::Expression::ident(reg_name), expr));
+            stmts.push(Statement::nonblocking_assignment(Expression::ident(reg_name), expr));
         }
 
         Ok((decls, stmts))
@@ -1261,8 +1251,8 @@ impl Virgen {
         .concat();
 
         let fold_prefix = ctx.alloc_temp_id();
-        let expr_for_fold_output = codegen::CompositeExpr::from_typ(lhs.port_decls(), fold_prefix.clone())
-            .map(|(ident, _)| Expression::ident(ident));
+        let expr_for_fold_output =
+            CompositeExpr::from_typ(lhs.port_decls(), fold_prefix.clone()).map(|(ident, _)| Expression::ident(ident));
 
         let decl_for_fold_output = Declaration::reg_with_typ(lhs.port_decls(), Some(fold_prefix.clone()));
         let stmt_epilogue = self.assign_exprs(
@@ -1355,8 +1345,8 @@ impl Virgen {
 
         // Step 3. Epiogue
         let fold_prefix = ctx.alloc_temp_id();
-        let expr_for_fold_output = codegen::CompositeExpr::from_typ(acc.port_decls(), fold_prefix.clone())
-            .map(|(ident, _)| Expression::ident(ident));
+        let expr_for_fold_output =
+            CompositeExpr::from_typ(acc.port_decls(), fold_prefix.clone()).map(|(ident, _)| Expression::ident(ident));
         let decl_epilogue_reg = Declaration::reg_with_typ(acc.port_decls(), Some(fold_prefix.clone()));
         let stmt_epilogue = self.assign_exprs(expr_for_fold_output.clone(), exprs_for_acc)?;
 

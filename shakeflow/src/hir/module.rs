@@ -70,7 +70,7 @@ impl<I1: Interface, I2: Interface, O1: Interface, O2: Interface> Module<(I1, I2)
                         .chain(virtual_module.output_endpoint().inner.into_iter())
                         .collect(),
                 };
-                (hir::Module::new(vm1.into()), hir::Module::new(vm2.into()))
+                (Module::new(vm1.into()), Module::new(vm2.into()))
             }
             _ => panic!("internal compiler error: split api can only be used for Virtual Modules"),
         }
