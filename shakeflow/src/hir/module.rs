@@ -10,7 +10,8 @@ use crate::*;
 /// Module.
 #[derive(Debug)]
 pub struct Module<I: Interface, O: Interface> {
-    pub(crate) inner: lir::Module,
+    #[allow(missing_docs)]
+    pub inner: lir::Module,
     _marker: PhantomData<(I, O)>,
 }
 
