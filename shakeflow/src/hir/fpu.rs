@@ -17,20 +17,28 @@ pub struct FP32 {
 }
 
 impl From<[bool; 32]> for FP32 {
-    fn from(inner: [bool; 32]) -> Self { Self { inner: Bits::new(inner.into_iter().collect()) } }
+    fn from(inner: [bool; 32]) -> Self {
+        Self { inner: Bits::new(inner.into_iter().collect()) }
+    }
 }
 
 impl From<f32> for FP32 {
-    fn from(value: f32) -> Self { u32_to_bits(value.to_bits()).into() }
+    fn from(value: f32) -> Self {
+        u32_to_bits(value.to_bits()).into()
+    }
 }
 
 impl Expr<FP32> {
     /// Creates new FP32 expr.
-    pub fn new(inner: Expr<Bits<U<32>>>) -> Self { FP32Proj { inner }.into() }
+    pub fn new(inner: Expr<Bits<U<32>>>) -> Self {
+        FP32Proj { inner }.into()
+    }
 }
 
 impl From<f32> for Expr<FP32> {
-    fn from(value: f32) -> Self { Self::new(Expr::<Bits<U<32>>>::from(value.to_bits() as usize)) }
+    fn from(value: f32) -> Self {
+        Self::new(Expr::<Bits<U<32>>>::from(value.to_bits() as usize))
+    }
 }
 
 impl Add<Expr<FP32>> for Expr<FP32> {

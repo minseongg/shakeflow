@@ -171,11 +171,15 @@ impl PrimOp {
 
     /// Returns true if `self` is binary bitwise operator.
     #[inline]
-    pub fn is_binary_bitwise(self) -> bool { matches!(self, PrimOp::And | PrimOp::Or | PrimOp::Xor) }
+    pub fn is_binary_bitwise(self) -> bool {
+        matches!(self, PrimOp::And | PrimOp::Or | PrimOp::Xor)
+    }
 
     /// Returns true if `self` is bitwise reduction operator.
     #[inline]
-    pub fn is_bitwise_reduction(self) -> bool { matches!(self, PrimOp::Andr | PrimOp::Orr | PrimOp::Xorr) }
+    pub fn is_bitwise_reduction(self) -> bool {
+        matches!(self, PrimOp::Andr | PrimOp::Orr | PrimOp::Xorr)
+    }
 }
 
 /// Expression.
@@ -286,34 +290,48 @@ impl Display for Expression {
 }
 
 impl From<usize> for Expression {
-    fn from(n: usize) -> Self { Expression::Literal { value: n.to_string(), width: None } }
+    fn from(n: usize) -> Self {
+        Expression::Literal { value: n.to_string(), width: None }
+    }
 }
 
 #[allow(clippy::should_implement_trait)]
 impl Expression {
     /// Reference expression.
     #[inline]
-    pub fn reference(name: String) -> Self { Expression::Reference { name } }
+    pub fn reference(name: String) -> Self {
+        Expression::Reference { name }
+    }
 
     /// Returns true if `self` is reference.
     #[inline]
-    pub fn is_reference(&self) -> bool { matches!(self, Expression::Reference { .. }) }
+    pub fn is_reference(&self) -> bool {
+        matches!(self, Expression::Reference { .. })
+    }
 
     /// Clock expression.
     #[inline]
-    pub fn clk() -> Self { Expression::reference("clk".to_string()) }
+    pub fn clk() -> Self {
+        Expression::reference("clk".to_string())
+    }
 
     /// Reset expression.
     #[inline]
-    pub fn rst() -> Self { Expression::reference("rst".to_string()) }
+    pub fn rst() -> Self {
+        Expression::reference("rst".to_string())
+    }
 
     /// Subfield expression.
     #[inline]
-    pub fn sub_field(expr: Expression, name: String) -> Self { Expression::SubField { expr: Box::new(expr), name } }
+    pub fn sub_field(expr: Expression, name: String) -> Self {
+        Expression::SubField { expr: Box::new(expr), name }
+    }
 
     /// Subindex expression.
     #[inline]
-    pub fn sub_index(expr: Expression, value: usize) -> Self { Expression::SubIndex { expr: Box::new(expr), value } }
+    pub fn sub_index(expr: Expression, value: usize) -> Self {
+        Expression::SubIndex { expr: Box::new(expr), value }
+    }
 
     /// Subaccess expression.
     #[inline]
@@ -351,31 +369,41 @@ impl Expression {
     ///
     /// Result width is `max(w_e1, w_e2) + 1`.
     #[inline]
-    pub fn add(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Add, vec![e1, e2], Vec::new()) }
+    pub fn add(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Add, vec![e1, e2], Vec::new())
+    }
 
     /// Subtract operation.
     ///
     /// Result width is `max(w_e1, w_e2) + 1`.
     #[inline]
-    pub fn sub(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Sub, vec![e1, e2], Vec::new()) }
+    pub fn sub(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Sub, vec![e1, e2], Vec::new())
+    }
 
     /// Multiply operation.
     ///
     /// Result width is `w_e1 + w_e2`.
     #[inline]
-    pub fn mul(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Mul, vec![e1, e2], Vec::new()) }
+    pub fn mul(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Mul, vec![e1, e2], Vec::new())
+    }
 
     /// Divide operation.
     ///
     /// Result width is `w_num`.
     #[inline]
-    pub fn div(num: Self, den: Self) -> Self { Expression::do_prim(PrimOp::Div, vec![num, den], Vec::new()) }
+    pub fn div(num: Self, den: Self) -> Self {
+        Expression::do_prim(PrimOp::Div, vec![num, den], Vec::new())
+    }
 
     /// Modulus operation.
     ///
     /// Result width is `min(w_num, w_den)`.
     #[inline]
-    pub fn rem(num: Self, den: Self) -> Self { Expression::do_prim(PrimOp::Rem, vec![num, den], Vec::new()) }
+    pub fn rem(num: Self, den: Self) -> Self {
+        Expression::do_prim(PrimOp::Rem, vec![num, den], Vec::new())
+    }
 
     /// Comparison operations. (lt, leq, gt, geq, eq, neq)
     ///
@@ -390,37 +418,49 @@ impl Expression {
     ///
     /// Result width is `max(w_e, n)`.
     #[inline]
-    pub fn pad(e: Self, n: usize) -> Self { Expression::do_prim(PrimOp::Pad, vec![e], vec![n]) }
+    pub fn pad(e: Self, n: usize) -> Self {
+        Expression::do_prim(PrimOp::Pad, vec![e], vec![n])
+    }
 
     /// Shift left operation.
     ///
     /// Result width is `w_e + n`.
     #[inline]
-    pub fn shl(e: Self, n: usize) -> Self { Expression::do_prim(PrimOp::Shl, vec![e], vec![n]) }
+    pub fn shl(e: Self, n: usize) -> Self {
+        Expression::do_prim(PrimOp::Shl, vec![e], vec![n])
+    }
 
     /// Shift right operation.
     ///
     /// Result width is `max(w_e - n, 1)`.
     #[inline]
-    pub fn shr(e: Self, n: usize) -> Self { Expression::do_prim(PrimOp::Shr, vec![e], vec![n]) }
+    pub fn shr(e: Self, n: usize) -> Self {
+        Expression::do_prim(PrimOp::Shr, vec![e], vec![n])
+    }
 
     /// Dynamic shift left operation.
     ///
     /// Result width is `w_e1 + 2 ^ w_e2 - 1`.
     #[inline]
-    pub fn dshl(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Dshl, vec![e1, e2], Vec::new()) }
+    pub fn dshl(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Dshl, vec![e1, e2], Vec::new())
+    }
 
     /// Dynamic shift right operation.
     ///
     /// Result width is `w_e1`.
     #[inline]
-    pub fn dshr(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Dshr, vec![e1, e2], Vec::new()) }
+    pub fn dshr(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Dshr, vec![e1, e2], Vec::new())
+    }
 
     /// Bitwise complement operation.
     ///
     /// Result width is `w_e`.
     #[inline]
-    pub fn not(e: Self) -> Self { Expression::do_prim(PrimOp::Not, vec![e], Vec::new()) }
+    pub fn not(e: Self) -> Self {
+        Expression::do_prim(PrimOp::Not, vec![e], Vec::new())
+    }
 
     /// Binary bitwise operations. (and, or, xor)
     ///
@@ -444,25 +484,33 @@ impl Expression {
     ///
     /// Result width is `w_e1 + w_e2`.
     #[inline]
-    pub fn cat(e1: Self, e2: Self) -> Self { Expression::do_prim(PrimOp::Cat, vec![e1, e2], Vec::new()) }
+    pub fn cat(e1: Self, e2: Self) -> Self {
+        Expression::do_prim(PrimOp::Cat, vec![e1, e2], Vec::new())
+    }
 
     /// Bit extraction operation.
     ///
     /// Result width is `hi - lo + 1`.
     #[inline]
-    pub fn bits(e: Self, hi: usize, lo: usize) -> Self { Expression::do_prim(PrimOp::Bits, vec![e], vec![hi, lo]) }
+    pub fn bits(e: Self, hi: usize, lo: usize) -> Self {
+        Expression::do_prim(PrimOp::Bits, vec![e], vec![hi, lo])
+    }
 
     /// Head.
     ///
     /// Result width is `n`.
     #[inline]
-    pub fn head(e: Self, n: usize) -> Self { Expression::do_prim(PrimOp::Head, vec![e], vec![n]) }
+    pub fn head(e: Self, n: usize) -> Self {
+        Expression::do_prim(PrimOp::Head, vec![e], vec![n])
+    }
 
     /// Tail.
     ///
     /// Result width is `w_e - n`.
     #[inline]
-    pub fn tail(e: Self, n: usize) -> Self { Expression::do_prim(PrimOp::Tail, vec![e], vec![n]) }
+    pub fn tail(e: Self, n: usize) -> Self {
+        Expression::do_prim(PrimOp::Tail, vec![e], vec![n])
+    }
 }
 
 /// Statement.
@@ -607,7 +655,9 @@ impl Display for Statement {
 impl Statement {
     /// Creates new wire definition.
     #[inline]
-    pub fn def_wire(name: String, tpe: Type) -> Self { Statement::DefWire { name, tpe } }
+    pub fn def_wire(name: String, tpe: Type) -> Self {
+        Statement::DefWire { name, tpe }
+    }
 
     /// Creates new reg definition.
     #[inline]
@@ -617,19 +667,27 @@ impl Statement {
 
     /// Creates new module instantiation.
     #[inline]
-    pub fn def_inst(name: String, module: String) -> Self { Statement::DefInstance { name, module } }
+    pub fn def_inst(name: String, module: String) -> Self {
+        Statement::DefInstance { name, module }
+    }
 
     /// Creates new node definition.
     #[inline]
-    pub fn def_node(name: String, value: Expression) -> Self { Statement::DefNode { name, value } }
+    pub fn def_node(name: String, value: Expression) -> Self {
+        Statement::DefNode { name, value }
+    }
 
     /// Creates new block statement.
     #[inline]
-    pub fn block(stmts: Vec<Statement>) -> Self { Statement::Block { stmts } }
+    pub fn block(stmts: Vec<Statement>) -> Self {
+        Statement::Block { stmts }
+    }
 
     /// Creates new connect statement.
     #[inline]
-    pub fn connect(loc: Expression, expr: Expression) -> Self { Statement::Connect { loc, expr } }
+    pub fn connect(loc: Expression, expr: Expression) -> Self {
+        Statement::Connect { loc, expr }
+    }
 }
 
 /// Type.
@@ -661,15 +719,21 @@ impl Display for Type {
 impl Type {
     /// Creates new clock type.
     #[inline]
-    pub fn clock() -> Self { Type::ClockType }
+    pub fn clock() -> Self {
+        Type::ClockType
+    }
 
     /// Creates new unsigned integer type.
     #[inline]
-    pub fn uint(width: usize) -> Self { Type::UIntType(width) }
+    pub fn uint(width: usize) -> Self {
+        Type::UIntType(width)
+    }
 
     /// Creates new vector type.
     #[inline]
-    pub fn vector(width: usize, size: usize) -> Self { Type::VectorType { width, size } }
+    pub fn vector(width: usize, size: usize) -> Self {
+        Type::VectorType { width, size }
+    }
 }
 
 /// Port of module.
@@ -691,10 +755,14 @@ impl Display for Port {
 
 impl Port {
     /// Creates new input port.
-    pub fn input(name: String, tpe: Type) -> Self { Port { name, direction: Direction::Input, tpe } }
+    pub fn input(name: String, tpe: Type) -> Self {
+        Port { name, direction: Direction::Input, tpe }
+    }
 
     /// Creates new output port.
-    pub fn output(name: String, tpe: Type) -> Self { Port { name, direction: Direction::Output, tpe } }
+    pub fn output(name: String, tpe: Type) -> Self {
+        Port { name, direction: Direction::Output, tpe }
+    }
 }
 
 /// An instantiable hardware block.

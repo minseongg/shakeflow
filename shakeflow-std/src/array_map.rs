@@ -115,7 +115,9 @@ pub trait EnumerateExt<const N: usize, I: Interface> {
 }
 
 impl<const N: usize, I: Interface> EnumerateExt<N, I> for [I; N] {
-    fn array_enumerate(self) -> ArrayEnumerate<N, I> { ArrayEnumerate { inner: self } }
+    fn array_enumerate(self) -> ArrayEnumerate<N, I> {
+        ArrayEnumerate { inner: self }
+    }
 }
 
 impl<const N: usize, I: Interface> ArrayEnumerate<N, I> {

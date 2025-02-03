@@ -85,5 +85,7 @@ fn m<V: Signal, const P: Protocol>() -> Module<VrChannel<V, P>, VrChannel<V>> {
 
 impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     /// Adds a skid buffer.
-    pub fn buffer_skid(self, k: &mut CompositeModuleContext) -> VrChannel<I> { self.comb_inline(k, m()) }
+    pub fn buffer_skid(self, k: &mut CompositeModuleContext) -> VrChannel<I> {
+        self.comb_inline(k, m())
+    }
 }

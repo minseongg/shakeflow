@@ -13,7 +13,9 @@ pub struct Hazard<Sel: Default + Signal, Cmd: Command, const PIPELINE: usize> {
 
 impl<Sel: Default + Signal, Cmd: Command, const PIPELINE: usize> Hazard<Sel, Cmd, PIPELINE> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<Self> { HazardProj { selector: Sel::default().into(), targets: Expr::x() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        HazardProj { selector: Sel::default().into(), targets: Expr::x() }.into()
+    }
 
     /// Calculates pipe hazard.
     pub fn pipe_hazard(hazard: Expr<Self>, target: Expr<Cmd>) -> Expr<bool> {

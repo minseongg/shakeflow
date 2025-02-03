@@ -77,7 +77,9 @@ fn csum_adder<N: Num, W: Num, const P: Protocol>(
 }
 
 impl<const KEEP_WIDTH: usize> State<KEEP_WIDTH> {
-    fn new() -> Self { Self { mask: [false; KEEP_WIDTH].into(), first_cycle: false, input_offset: [false; 8].into() } }
+    fn new() -> Self {
+        Self { mask: [false; KEEP_WIDTH].into(), first_cycle: false, input_offset: [false; 8].into() }
+    }
 }
 
 #[derive(Debug, Clone, Signal)]

@@ -23,7 +23,9 @@ pub struct Module<C: Codegen> {
 
 impl<C: Codegen> Module<C> {
     /// Creates new module.
-    fn new(name: String, ports: C::Ports, body: C::Body) -> Self { Module { name, ports, body } }
+    fn new(name: String, ports: C::Ports, body: C::Body) -> Self {
+        Module { name, ports, body }
+    }
 }
 
 /// Generates target code.
@@ -92,7 +94,9 @@ impl<V: Clone + std::fmt::Debug> CompositeExpr<V> {
     }
 
     /// Iterator for `CompositeExpr`.
-    pub fn iter(&self) -> CompositeExprIterator<V> { self.into_iter() }
+    pub fn iter(&self) -> CompositeExprIterator<V> {
+        self.into_iter()
+    }
 
     /// Converts primitive expressions in the tree.
     pub fn map<W: Clone, F: FnMut(V) -> W>(self, mut f: F) -> CompositeExpr<W> {
@@ -144,7 +148,9 @@ pub struct CompositeExprIterator<V> {
 impl<V: Clone> Iterator for CompositeExprIterator<V> {
     type Item = V;
 
-    fn next(&mut self) -> Option<Self::Item> { self.inner.pop_front() }
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.pop_front()
+    }
 }
 
 impl<V: Clone> IntoIterator for &CompositeExpr<V> {
@@ -212,13 +218,19 @@ pub struct Context {
 
 impl Context {
     /// Creates new context.
-    pub fn new() -> Self { Self::default() }
+    pub fn new() -> Self {
+        Self::default()
+    }
 
     /// Enters scope with given scope name.
-    pub fn enter_scope(&mut self, scope_name: String) { self.scopes.push(Scope::new(scope_name)); }
+    pub fn enter_scope(&mut self, scope_name: String) {
+        self.scopes.push(Scope::new(scope_name));
+    }
 
     /// Leaves scope.
-    pub fn leave_scope(&mut self) { self.scopes.pop(); }
+    pub fn leave_scope(&mut self) {
+        self.scopes.pop();
+    }
 
     /// Returns prefix of the inner scope.
     pub fn get_prefix(&self) -> Option<String> {
@@ -270,7 +282,9 @@ pub struct Scope {
 
 impl Scope {
     /// Creates new scope.
-    pub fn new(prefix: String) -> Self { Self { prefix, int_id: 0, temp_id: 0 } }
+    pub fn new(prefix: String) -> Self {
+        Self { prefix, int_id: 0, temp_id: 0 }
+    }
 }
 
 /// Represents port in target language.
@@ -284,9 +298,13 @@ struct Port {
 }
 
 impl Port {
-    fn new(channel_typ: lir::ChannelTyp, size: usize) -> Self { Port { channel_typ, size } }
+    fn new(channel_typ: lir::ChannelTyp, size: usize) -> Self {
+        Port { channel_typ, size }
+    }
 
-    fn multiple(self, count: usize) -> Self { Port { channel_typ: self.channel_typ, size: self.size * count } }
+    fn multiple(self, count: usize) -> Self {
+        Port { channel_typ: self.channel_typ, size: self.size * count }
+    }
 }
 
 /// Direction of port.
@@ -358,15 +376,21 @@ impl Display for LogicValues {
 impl Deref for LogicValues {
     type Target = [LogicValue];
 
-    fn deref(&self) -> &Self::Target { &self.0 }
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
 }
 
 impl LogicValues {
     /// Creates new logic values.
-    pub fn new(inner: Vec<LogicValue>) -> Self { Self(inner) }
+    pub fn new(inner: Vec<LogicValue>) -> Self {
+        Self(inner)
+    }
 
     /// Inner logic values.
-    pub fn into_inner(self) -> Vec<LogicValue> { self.0 }
+    pub fn into_inner(self) -> Vec<LogicValue> {
+        self.0
+    }
 }
 
 /// Generates bitarrays representing Expr. Panics if it cannot be converted into bitarrays.

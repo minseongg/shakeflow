@@ -36,10 +36,14 @@ impl<V: Signal> Copy for Expr<V> {}
 
 impl<V: Signal> Expr<V> {
     /// Don't care value.
-    pub fn x() -> Self { lir::Expr::X { typ: V::port_decls() }.into() }
+    pub fn x() -> Self {
+        lir::Expr::X { typ: V::port_decls() }.into()
+    }
 
     /// Input expr.
-    pub fn input(name: Option<String>) -> Self { lir::Expr::Input { name, typ: V::port_decls() }.into() }
+    pub fn input(name: Option<String>) -> Self {
+        lir::Expr::Input { name, typ: V::port_decls() }.into()
+    }
 
     /// Member of input expr.
     pub fn member<W: Signal>(input: Expr<W>, index: usize) -> Self {
@@ -53,7 +57,9 @@ impl<V: Signal> Expr<V> {
     }
 
     /// Consumes the `Expr`, returning the wrapped `lir::ExprId`.
-    pub fn into_inner(self) -> lir::ExprId { self.id }
+    pub fn into_inner(self) -> lir::ExprId {
+        self.id
+    }
 
     /// Case expression
     pub fn case<W1: Signal, W2: Signal>(
@@ -91,11 +97,15 @@ impl<V: Signal> From<V> for Expr<V> {
 }
 
 impl<N: Num> From<usize> for Expr<Bits<N>> {
-    fn from(signal: usize) -> Self { Bits::new(usize_to_bitvec(N::WIDTH, signal)).into() }
+    fn from(signal: usize) -> Self {
+        Bits::new(usize_to_bitvec(N::WIDTH, signal)).into()
+    }
 }
 
 impl<const N: usize> From<[bool; N]> for Expr<Bits<U<N>>> {
-    fn from(signal: [bool; N]) -> Self { Self::from(Bits::new(signal.into_iter().collect())) }
+    fn from(signal: [bool; N]) -> Self {
+        Self::from(Bits::new(signal.into_iter().collect()))
+    }
 }
 
 impl<V: Signal> From<Expr<Bits<U<{ V::WIDTH }>>>> for Expr<V> {
@@ -106,7 +116,9 @@ impl<V: Signal> From<Expr<Bits<U<{ V::WIDTH }>>>> for Expr<V> {
 }
 
 impl<V: Signal> From<Expr<V>> for Expr<Bits<U<{ V::WIDTH }>>> {
-    fn from(expr: Expr<V>) -> Self { expr.repr() }
+    fn from(expr: Expr<V>) -> Self {
+        expr.repr()
+    }
 }
 
 impl<V: Signal, const N: usize> From<[Expr<V>; N]> for Expr<Array<V, U<N>>> {
@@ -395,7 +407,9 @@ impl<M: Num, N: Num> Expr<Array<Bits<M>, N>> {
     ///       (as `.sum()` is often considered to be a hir-level operation instead of lir-level),
     ///       we set it regardless because it needs to be parsed at codegen-level to create an
     ///       actual for-loop instead of a manually unrolled loop.
-    pub fn sum(&self) -> Expr<Bits<M>> { lir::Expr::Sum { inner: self.into_inner(), width_elt: M::WIDTH }.into() }
+    pub fn sum(&self) -> Expr<Bits<M>> {
+        lir::Expr::Sum { inner: self.into_inner(), width_elt: M::WIDTH }.into()
+    }
 }
 
 impl<V: Signal> Expr<V> {
@@ -718,7 +732,9 @@ impl<const N: usize> Expr<Bits<U<N>>> {
 impl Not for Expr<bool> {
     type Output = Self;
 
-    fn not(self) -> Self::Output { lir::Expr::Not { inner: self.into_inner() }.into() }
+    fn not(self) -> Self::Output {
+        lir::Expr::Not { inner: self.into_inner() }.into()
+    }
 }
 
 impl<V: Signal, N: Num> Not for Expr<Array<V, N>>
@@ -726,7 +742,9 @@ where Expr<V>: Not
 {
     type Output = Self;
 
-    fn not(self) -> Self::Output { lir::Expr::Not { inner: self.into_inner() }.into() }
+    fn not(self) -> Self::Output {
+        lir::Expr::Not { inner: self.into_inner() }.into()
+    }
 }
 
 impl Expr<bool> {
@@ -767,7 +785,9 @@ pub trait Serialize: Signal {
 
 impl<V: Serialize> Expr<V> {
     /// Serialization.
-    pub fn serialize(&self) -> Expr<Bits<U<{ V::WIDTH }>>> { Serialize::serialize(*self) }
+    pub fn serialize(&self) -> Expr<Bits<U<{ V::WIDTH }>>> {
+        Serialize::serialize(*self)
+    }
 }
 
 /// Deserializes from bit array.
@@ -824,14 +844,18 @@ impl<A: Signal, B: Signal> ExprProj for (A, B) {
     type Target = (Expr<A>, Expr<B>);
 
     /// Projects a pair expr to expr pair.
-    fn proj(expr: Expr<Self>) -> Self::Target { (Expr::member(expr, 0), Expr::member(expr, 1)) }
+    fn proj(expr: Expr<Self>) -> Self::Target {
+        (Expr::member(expr, 0), Expr::member(expr, 1))
+    }
 }
 
 impl<A: Signal, B: Signal, C: Signal> ExprProj for (A, B, C) {
     type Target = (Expr<A>, Expr<B>, Expr<C>);
 
     /// Projects a pair expr to expr pair.
-    fn proj(expr: Expr<Self>) -> Self::Target { (Expr::member(expr, 0), Expr::member(expr, 1), Expr::member(expr, 2)) }
+    fn proj(expr: Expr<Self>) -> Self::Target {
+        (Expr::member(expr, 0), Expr::member(expr, 1), Expr::member(expr, 2))
+    }
 }
 
 impl<A: Signal, B: Signal, C: Signal, D: Signal> ExprProj for (A, B, C, D) {

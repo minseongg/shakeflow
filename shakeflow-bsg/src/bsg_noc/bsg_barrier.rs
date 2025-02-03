@@ -20,7 +20,9 @@ pub struct S<const DIRS: usize> {
 
 impl<const DIRS: usize> S<DIRS> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<Self> { SProj { activate: false.into(), data: 0.into(), sense: false.into() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        SProj { activate: false.into(), data: 0.into(), sense: false.into() }.into()
+    }
 }
 
 pub fn m<const DIRS: usize>() -> Module<IC<DIRS>, EC<DIRS>> {

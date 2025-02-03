@@ -56,5 +56,7 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     /// register slice will malfunction. Reason: we didn't install data/valid registers for the case
     /// that (1) ready_reg is true; and (2) ready_in is false.
     #[must_use]
-    pub fn register_slice_bwd(self, k: &mut CompositeModuleContext) -> VrChannel<I> { self.comb_inline(k, m_bwd()) }
+    pub fn register_slice_bwd(self, k: &mut CompositeModuleContext) -> VrChannel<I> {
+        self.comb_inline(k, m_bwd())
+    }
 }

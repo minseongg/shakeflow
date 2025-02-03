@@ -141,13 +141,19 @@ impl ModuleInner {
 }
 
 impl From<Fsm> for Module {
-    fn from(module: Fsm) -> Module { Module { inner: Rc::new(ModuleInner::Fsm(module)) } }
+    fn from(module: Fsm) -> Module {
+        Module { inner: Rc::new(ModuleInner::Fsm(module)) }
+    }
 }
 
 impl From<ModuleInst> for Module {
-    fn from(module: ModuleInst) -> Module { Module { inner: Rc::new(ModuleInner::ModuleInst(module)) } }
+    fn from(module: ModuleInst) -> Module {
+        Module { inner: Rc::new(ModuleInner::ModuleInst(module)) }
+    }
 }
 
 impl From<VirtualModule> for Module {
-    fn from(module: VirtualModule) -> Module { Module { inner: Rc::new(ModuleInner::VirtualModule(module)) } }
+    fn from(module: VirtualModule) -> Module {
+        Module { inner: Rc::new(ModuleInner::VirtualModule(module)) }
+    }
 }

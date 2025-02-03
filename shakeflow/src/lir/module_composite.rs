@@ -32,7 +32,9 @@ pub enum CompositeModuleTyp {
 }
 
 impl Default for CompositeModuleTyp {
-    fn default() -> Self { Self::OneToOne }
+    fn default() -> Self {
+        Self::OneToOne
+    }
 }
 
 /// Composite module.

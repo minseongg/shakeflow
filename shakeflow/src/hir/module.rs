@@ -17,7 +17,9 @@ pub struct Module<I: Interface, O: Interface> {
 
 impl<I: Interface, O: Interface> Module<I, O> {
     /// Creates new module.
-    pub fn new(inner: lir::Module) -> Self { Module { inner, _marker: PhantomData } }
+    pub fn new(inner: lir::Module) -> Self {
+        Module { inner, _marker: PhantomData }
+    }
 }
 
 impl<I1: Interface, I2: Interface, O1: Interface, O2: Interface> Module<(I1, I2), (O1, O2)> {
@@ -85,7 +87,9 @@ impl<
         F: 'static + Fn(Expr<I::Fwd>, Expr<O::Bwd>, Expr<S>) -> (Expr<O::Fwd>, Expr<I::Bwd>, Expr<S>),
     > From<Fsm<I, O, S, F>> for Module<I, O>
 {
-    fn from(module: Fsm<I, O, S, F>) -> Self { Self { inner: lir::Fsm::from(module).into(), _marker: PhantomData } }
+    fn from(module: Fsm<I, O, S, F>) -> Self {
+        Self { inner: lir::Fsm::from(module).into(), _marker: PhantomData }
+    }
 }
 
 impl<I: Interface, O: Interface> From<ModuleInst<I, O>> for Module<I, O> {
@@ -95,5 +99,7 @@ impl<I: Interface, O: Interface> From<ModuleInst<I, O>> for Module<I, O> {
 }
 
 impl<I: Interface, O: Interface> Clone for Module<I, O> {
-    fn clone(&self) -> Self { Self { inner: self.inner.clone(), _marker: PhantomData } }
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone(), _marker: PhantomData }
+    }
 }

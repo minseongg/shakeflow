@@ -32,7 +32,9 @@ pub struct WReq {
 }
 
 impl WReq {
-    pub fn new_expr() -> Expr<Self> { WReqProj { data: 0.into(), strb: 0.into() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        WReqProj { data: 0.into(), strb: 0.into() }.into()
+    }
 }
 
 /// s_axil_b*.
@@ -42,7 +44,9 @@ pub struct WRes {
 }
 
 impl WRes {
-    pub fn new_expr() -> Expr<Self> { WResProj { resp: 0.into() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        WResProj { resp: 0.into() }.into()
+    }
 }
 
 /// s_axil_r*.

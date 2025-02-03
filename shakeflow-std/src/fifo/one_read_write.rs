@@ -27,7 +27,9 @@ struct S<V: Signal, const ELS: usize> {
 }
 
 impl<V: Signal, const ELS: usize> S<V, ELS> {
-    fn new_expr() -> Expr<Self> { SProj { mem: Expr::x(), last_op_is_read: false.into(), output: Expr::x() }.into() }
+    fn new_expr() -> Expr<Self> {
+        SProj { mem: Expr::x(), last_op_is_read: false.into(), output: Expr::x() }.into()
+    }
 }
 
 fn m_fifo_1rw<V: Signal, const ELS: usize>() -> Module<UniChannel<I<V>>, UniChannel<E<V>>> {

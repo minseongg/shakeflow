@@ -48,17 +48,25 @@ pub trait Signal: 'static + Debug + Clone {
 impl Signal for () {
     const WIDTH: usize = 0;
 
-    fn transl(self) -> Vec<bool> { vec![] }
+    fn transl(self) -> Vec<bool> {
+        vec![]
+    }
 
-    fn port_decls() -> lir::PortDecls { lir::PortDecls::Bits(lir::Shape::new([0])) }
+    fn port_decls() -> lir::PortDecls {
+        lir::PortDecls::Bits(lir::Shape::new([0]))
+    }
 }
 
 impl Signal for bool {
     const WIDTH: usize = 1;
 
-    fn transl(self) -> Vec<bool> { vec![self] }
+    fn transl(self) -> Vec<bool> {
+        vec![self]
+    }
 
-    fn port_decls() -> lir::PortDecls { lir::PortDecls::Bits(lir::Shape::new([1])) }
+    fn port_decls() -> lir::PortDecls {
+        lir::PortDecls::Bits(lir::Shape::new([1]))
+    }
 }
 
 fn expand_dim_typ<N: Num>(typ: lir::PortDecls) -> lir::PortDecls {
@@ -86,9 +94,13 @@ impl<V: Signal, N: Num> Copy for VarArray<V, N> {}
 impl<V: Signal, N: Num> Signal for VarArray<V, N> {
     const WIDTH: usize = V::WIDTH * N::WIDTH;
 
-    fn transl(self) -> Vec<bool> { todo!() }
+    fn transl(self) -> Vec<bool> {
+        todo!()
+    }
 
-    fn port_decls() -> lir::PortDecls { expand_dim_typ::<N>(V::port_decls()) }
+    fn port_decls() -> lir::PortDecls {
+        expand_dim_typ::<N>(V::port_decls())
+    }
 }
 
 #[allow(missing_docs)]
@@ -161,7 +173,9 @@ macro_rules! impl_signal {
                 (0..(::std::mem::size_of::<$typ>() * 8)).map(|i| (self & ((1 as $typ) << i)) != 0).collect::<Vec<_>>()
             }
 
-            fn port_decls() -> lir::PortDecls { lir::PortDecls::Bits(lir::Shape::new([Self::WIDTH])) }
+            fn port_decls() -> lir::PortDecls {
+                lir::PortDecls::Bits(lir::Shape::new([Self::WIDTH]))
+            }
         }
     };
 }
@@ -189,7 +203,9 @@ impl<V: Signal, N: Num> Array<V, N> {
 }
 
 impl<V: Default + Signal, N: Num> Default for Array<V, N> {
-    fn default() -> Self { Self::new(vec![V::default(); N::WIDTH]) }
+    fn default() -> Self {
+        Self::new(vec![V::default(); N::WIDTH])
+    }
 }
 
 /// Bits type
@@ -203,9 +219,13 @@ impl<V: Signal, N: Num> Signal for Array<V, N> {
         self.inner.into_iter().flat_map(|v| v.transl()).collect()
     }
 
-    fn port_decls() -> lir::PortDecls { V::port_decls().multiple(N::WIDTH) }
+    fn port_decls() -> lir::PortDecls {
+        V::port_decls().multiple(N::WIDTH)
+    }
 }
 
 impl<const N: usize> From<[bool; N]> for Bits<U<N>> {
-    fn from(inner: [bool; N]) -> Self { Bits::new(inner.into_iter().collect()) }
+    fn from(inner: [bool; N]) -> Self {
+        Bits::new(inner.into_iter().collect())
+    }
 }

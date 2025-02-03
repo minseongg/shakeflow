@@ -4,7 +4,6 @@ group_imports = "StdExternalCrate"
 imports_granularity = "Module"
 condense_wildcard_suffixes = true
 fn_params_layout = "Compressed"
-fn_single_line = true
 overflow_delimited_expr = true
 reorder_impl_items = true
 use_field_init_shorthand = true

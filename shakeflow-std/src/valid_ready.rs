@@ -102,7 +102,9 @@ pub trait ValidExt<V: Signal> {
 
 impl<V: Signal> ValidExt<V> for Expr<Valid<V>> {
     /// Creates a new expr.
-    fn new(valid: Expr<bool>, inner: Expr<V>) -> Self { ValidProj { inner, valid }.into() }
+    fn new(valid: Expr<bool>, inner: Expr<V>) -> Self {
+        ValidProj { inner, valid }.into()
+    }
 
     /// Creates a new array of exprs.
     fn new_arr<N: Num>(valid: Expr<Bits<N>>, inner: Expr<Array<V, N>>) -> Expr<Array<Valid<V>, N>> {
@@ -111,10 +113,14 @@ impl<V: Signal> ValidExt<V> for Expr<Valid<V>> {
     }
 
     /// Creates an invalid expr.
-    fn invalid() -> Self { Self::new(false.into(), Expr::x()) }
+    fn invalid() -> Self {
+        Self::new(false.into(), Expr::x())
+    }
 
     /// Creates an valid expr.
-    fn valid(inner: Expr<V>) -> Self { Self::new(true.into(), inner) }
+    fn valid(inner: Expr<V>) -> Self {
+        Self::new(true.into(), inner)
+    }
 
     /// Maps the inner value.
     fn map_inner<W: Signal>(self, f: fn(Expr<V>) -> Expr<W>) -> Expr<Valid<W>> {
@@ -138,7 +144,9 @@ pub trait ReadyExt {
 
 impl ReadyExt for Expr<Ready> {
     /// Creates a new expr.
-    fn new(ready: Expr<bool>) -> Expr<Ready> { ReadyProj { ready }.into() }
+    fn new(ready: Expr<bool>) -> Expr<Ready> {
+        ReadyProj { ready }.into()
+    }
 
     /// Creates a new array of exprs.
     fn new_arr<N: Num>(ready: Expr<Bits<N>>) -> Expr<Array<Ready, N>> {
@@ -528,10 +536,14 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     }
 
     /// Sinks the valid-ready channel by consuming.
-    pub fn sink(self, k: &mut CompositeModuleContext) { let _ = self.into_uni(k, true); }
+    pub fn sink(self, k: &mut CompositeModuleContext) {
+        let _ = self.into_uni(k, true);
+    }
 
     /// Blocks the valid-ready channel without consuming.
-    pub fn block(self, k: &mut CompositeModuleContext) { let _ = self.comb_inline(k, m_into_uni(false)); }
+    pub fn block(self, k: &mut CompositeModuleContext) {
+        let _ = self.comb_inline(k, m_into_uni(false));
+    }
 
     /// Receives until `cond` is low. If `cond` becomes high, then turn on valid signal.
     pub fn receive_until(self, k: &mut CompositeModuleContext, cond: UniChannel<bool>) -> VrChannel<I> {

@@ -78,5 +78,7 @@ fn m_vr_array<V: Signal, const N: usize>() -> Module<[VrChannel<V>; N], (UniChan
 impl<V: Signal, const N: usize> MuxExt for [VrChannel<V>; N] {
     type Output = (UniChannel<Bits<U<N>>>, VrChannel<V>);
 
-    fn mux(self, k: &mut CompositeModuleContext) -> Self::Output { self.comb_inline(k, m_vr_array()) }
+    fn mux(self, k: &mut CompositeModuleContext) -> Self::Output {
+        self.comb_inline(k, m_vr_array())
+    }
 }

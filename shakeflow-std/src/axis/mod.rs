@@ -71,7 +71,9 @@ pub trait AxisValidExt<V: Signal> {
 
 impl<V: Signal> AxisValidExt<V> for Expr<AxisValid<V>> {
     /// Creates an invalid expr.
-    fn tinvalid() -> Expr<AxisValid<V>> { AxisValidProj { inner: Expr::x(), tvalid: false.into() }.into() }
+    fn tinvalid() -> Expr<AxisValid<V>> {
+        AxisValidProj { inner: Expr::x(), tvalid: false.into() }.into()
+    }
 }
 
 /// AXIs valid-ready channel.

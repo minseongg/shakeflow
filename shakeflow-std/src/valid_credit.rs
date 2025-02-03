@@ -21,7 +21,9 @@ pub trait CreditExt {
 
 impl CreditExt for Expr<Credit> {
     /// Creates a new expr.
-    fn new(credit: Expr<bool>) -> Self { CreditProj { credit }.into() }
+    fn new(credit: Expr<bool>) -> Self {
+        CreditProj { credit }.into()
+    }
 }
 
 /// Valid-credit channel.
@@ -104,5 +106,7 @@ impl<I: Signal, const P: Protocol> VcChannel<I, P> {
     }
 
     /// Transforms into valid/ready chanel.
-    pub fn into_vr(self, k: &mut CompositeModuleContext) -> VrChannel<I, P> { self.comb_inline(k, m_into_vr()) }
+    pub fn into_vr(self, k: &mut CompositeModuleContext) -> VrChannel<I, P> {
+        self.comb_inline(k, m_into_vr())
+    }
 }

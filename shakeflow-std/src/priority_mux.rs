@@ -99,5 +99,7 @@ impl<const N: usize> PriorityMuxExt for IC<N> {
 impl<V: Signal, const N: usize> PriorityMuxExt for [VrChannel<V>; N] {
     type O = VrChannel<(Bits<Log2<U<N>>>, V)>;
 
-    fn priority_mux(self, k: &mut CompositeModuleContext) -> Self::O { self.comb_inline(k, m::<_, N>()) }
+    fn priority_mux(self, k: &mut CompositeModuleContext) -> Self::O {
+        self.comb_inline(k, m::<_, N>())
+    }
 }

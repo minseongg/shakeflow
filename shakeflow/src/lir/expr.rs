@@ -12,10 +12,14 @@ pub struct ExprId(usize);
 
 impl ExprId {
     /// Allocates expr to the table and returns the id
-    pub fn alloc_expr(expr: Merkle<Expr>) -> Self { TABLE.with(|table| table.push(expr)) }
+    pub fn alloc_expr(expr: Merkle<Expr>) -> Self {
+        TABLE.with(|table| table.push(expr))
+    }
 
     /// Returns expr corresponding to given id
-    pub fn into_expr(self) -> Merkle<Expr> { TABLE.with(|table| table.get(self)) }
+    pub fn into_expr(self) -> Merkle<Expr> {
+        TABLE.with(|table| table.get(self))
+    }
 }
 
 /// Expr Table
@@ -47,7 +51,9 @@ impl std::fmt::Debug for Table {
 
 impl Table {
     /// Inserts expr into table.
-    fn get(&self, id: ExprId) -> Merkle<Expr> { self.inner.borrow().get(id.0).expect("does not have element!").clone() }
+    fn get(&self, id: ExprId) -> Merkle<Expr> {
+        self.inner.borrow().get(id.0).expect("does not have element!").clone()
+    }
 
     /// Returns expr from table by using id.
     fn push(&self, expr: Merkle<Expr>) -> ExprId {

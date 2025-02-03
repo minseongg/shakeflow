@@ -43,5 +43,7 @@ impl<V: Signal, const N: usize> MuxQuickExt for [VrChannel<V>; N] {
     type O = UniChannel<V>;
     type Sel = Bits<U<N>>;
 
-    fn mux_quick(self, k: &mut CompositeModuleContext) -> (UniChannel<Self::Sel>, Self::O) { self.comb_inline(k, m()) }
+    fn mux_quick(self, k: &mut CompositeModuleContext) -> (UniChannel<Self::Sel>, Self::O) {
+        self.comb_inline(k, m())
+    }
 }

@@ -239,7 +239,9 @@ impl<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize> Cmd<QUEUE_INDEX
 }
 
 impl<const QUEUE_INDEX_WIDTH: usize, const REQ_TAG_WIDTH: usize> Command for Cmd<QUEUE_INDEX_WIDTH, REQ_TAG_WIDTH> {
-    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> { lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr) }
+    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> {
+        lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr)
+    }
 }
 
 #[derive(Debug, Clone, Signal)]

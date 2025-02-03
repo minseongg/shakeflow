@@ -93,14 +93,18 @@ impl Interface for () {
     type Bwd = ();
     type Fwd = ();
 
-    fn interface_typ() -> lir::InterfaceTyp { lir::InterfaceTyp::Unit }
+    fn interface_typ() -> lir::InterfaceTyp {
+        lir::InterfaceTyp::Unit
+    }
 
     fn try_from_inner(interface: lir::Interface) -> Result<Self, InterfaceError> {
         assert_eq!(interface.typ(), Self::interface_typ(), "internal compiler error");
         Ok(())
     }
 
-    fn try_into_inner(self) -> Result<lir::Interface, InterfaceError> { Ok(lir::Interface::Unit) }
+    fn try_into_inner(self) -> Result<lir::Interface, InterfaceError> {
+        Ok(lir::Interface::Unit)
+    }
 }
 
 /// Macro for decraring custom channel
@@ -366,7 +370,9 @@ impl<B: Interface, const N: usize> Interface for [B; N] {
     type Bwd = Array<B::Bwd, U<N>>;
     type Fwd = Array<B::Fwd, U<N>>;
 
-    fn interface_typ() -> lir::InterfaceTyp { lir::InterfaceTyp::Array(Box::new(B::interface_typ()), N) }
+    fn interface_typ() -> lir::InterfaceTyp {
+        lir::InterfaceTyp::Array(Box::new(B::interface_typ()), N)
+    }
 
     fn try_from_inner(interface: lir::Interface) -> Result<Self, InterfaceError> {
         assert_eq!(interface.typ(), Self::interface_typ(), "internal compiler error");

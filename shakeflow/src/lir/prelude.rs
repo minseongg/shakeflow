@@ -17,13 +17,19 @@ pub struct Shape {
 
 impl Shape {
     /// Creates new shape.
-    pub fn new<I: IntoIterator<Item = usize>>(iterable: I) -> Self { Self { inner: iterable.into_iter().collect() } }
+    pub fn new<I: IntoIterator<Item = usize>>(iterable: I) -> Self {
+        Self { inner: iterable.into_iter().collect() }
+    }
 
     /// Returns dimension of array.
-    pub fn dim(&self) -> usize { self.inner.len() }
+    pub fn dim(&self) -> usize {
+        self.inner.len()
+    }
 
     /// Returns number of elements in array.
-    pub fn width(&self) -> usize { self.inner.iter().product() }
+    pub fn width(&self) -> usize {
+        self.inner.iter().product()
+    }
 
     /// TODO: Documentation
     pub fn get(&self, index: usize) -> usize {
@@ -73,7 +79,9 @@ impl PortDecls {
     }
 
     /// Maximum dimension of the primitive value types in `PortDecls`.
-    pub fn max_dim(&self) -> usize { self.iter().map(|(_, shape)| shape.dim()).max().unwrap_or(1) }
+    pub fn max_dim(&self) -> usize {
+        self.iter().map(|(_, shape)| shape.dim()).max().unwrap_or(1)
+    }
 
     /// Iterator for `PortDecls`.
     ///
@@ -81,7 +89,9 @@ impl PortDecls {
     ///
     /// The iterator returns (name, width) for inner fields **ONLY** with nonzero width.
     /// This is to ignore meaningless unit types. (e.g. The unit type in `Keep<V, ()>`)
-    pub fn iter(&self) -> ValueTypIterator { self.into_iter() }
+    pub fn iter(&self) -> ValueTypIterator {
+        self.into_iter()
+    }
 
     /// Consumes the `PortDecls`, returning new `PortDecls` with width of each field multiplied by `n`.
     #[must_use]
@@ -129,7 +139,9 @@ impl IntoIterator for &PortDecls {
     type IntoIter = ValueTypIterator;
     type Item = (Option<String>, Shape);
 
-    fn into_iter(self) -> Self::IntoIter { self.iter_with_prefix(None) }
+    fn into_iter(self) -> Self::IntoIter {
+        self.iter_with_prefix(None)
+    }
 }
 
 /// Iterator for `PortDecls`.
@@ -141,7 +153,9 @@ pub struct ValueTypIterator {
 impl Iterator for ValueTypIterator {
     type Item = (Option<String>, Shape);
 
-    fn next(&mut self) -> Option<Self::Item> { self.inner.pop_front() }
+    fn next(&mut self) -> Option<Self::Item> {
+        self.inner.pop_front()
+    }
 }
 
 /// Channel's type.
@@ -156,7 +170,9 @@ pub struct ChannelTyp {
 
 impl ChannelTyp {
     /// Creates a new channel type.
-    pub const fn new(fwd: PortDecls, bwd: PortDecls) -> Self { Self { fwd, bwd } }
+    pub const fn new(fwd: PortDecls, bwd: PortDecls) -> Self {
+        Self { fwd, bwd }
+    }
 }
 
 /// Interface's type.
@@ -261,10 +277,14 @@ pub struct Channel {
 
 impl Channel {
     /// Returns channel type.
-    pub fn typ(&self) -> ChannelTyp { self.typ.clone() }
+    pub fn typ(&self) -> ChannelTyp {
+        self.typ.clone()
+    }
 
     /// Returns endpoint.
-    pub fn endpoint(&self) -> Endpoint { self.endpoint.clone() }
+    pub fn endpoint(&self) -> Endpoint {
+        self.endpoint.clone()
+    }
 }
 
 /// Input/output interface.
@@ -448,17 +468,23 @@ pub struct EndpointPath {
 }
 
 impl FromIterator<EndpointNode> for EndpointPath {
-    fn from_iter<T: IntoIterator<Item = EndpointNode>>(iter: T) -> Self { Self { inner: iter.into_iter().collect() } }
+    fn from_iter<T: IntoIterator<Item = EndpointNode>>(iter: T) -> Self {
+        Self { inner: iter.into_iter().collect() }
+    }
 }
 
 impl Deref for EndpointPath {
     type Target = VecDeque<EndpointNode>;
 
-    fn deref(&self) -> &Self::Target { &self.inner }
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
 }
 
 impl DerefMut for EndpointPath {
-    fn deref_mut(&mut self) -> &mut Self::Target { &mut self.inner }
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
+    }
 }
 
 /// Wire's endpoint.
@@ -494,13 +520,19 @@ pub enum Endpoint {
 
 impl Endpoint {
     /// Creates a new endpoint on input.
-    pub fn input(path: EndpointPath) -> Self { Self::Input { path } }
+    pub fn input(path: EndpointPath) -> Self {
+        Self::Input { path }
+    }
 
     /// Creates a new endpoint on submodule.
-    pub fn submodule(submodule_index: usize, path: EndpointPath) -> Self { Self::Submodule { submodule_index, path } }
+    pub fn submodule(submodule_index: usize, path: EndpointPath) -> Self {
+        Self::Submodule { submodule_index, path }
+    }
 
     /// Creates a new temporary endpoint.
-    pub fn temp(path: EndpointPath) -> Self { Self::Temp { path } }
+    pub fn temp(path: EndpointPath) -> Self {
+        Self::Temp { path }
+    }
 
     /// Returns endpoint path.
     pub fn path(&self) -> &EndpointPath {

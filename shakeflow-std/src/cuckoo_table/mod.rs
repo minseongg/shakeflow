@@ -16,7 +16,9 @@ pub struct AxisData<V: Signal> {
     tdata: V,
 }
 
-const fn pad_width(width: usize, align_by: usize) -> usize { align_usize(width, align_by) - (width) }
+const fn pad_width(width: usize, align_by: usize) -> usize {
+    align_usize(width, align_by) - (width)
+}
 
 // Types for Basis Data Types
 pub(super) type KeyType = Bits<U<KEY_SIZE>>;

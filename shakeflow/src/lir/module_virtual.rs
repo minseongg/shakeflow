@@ -25,13 +25,19 @@ pub struct VirtualModule {
 }
 
 impl VirtualModule {
-    pub(crate) fn input_endpoint(&self) -> EndpointPath { self.input_endpoint_path.clone() }
+    pub(crate) fn input_endpoint(&self) -> EndpointPath {
+        self.input_endpoint_path.clone()
+    }
 
-    pub(crate) fn output_endpoint(&self) -> EndpointPath { self.output_endpoint_path.clone() }
+    pub(crate) fn output_endpoint(&self) -> EndpointPath {
+        self.output_endpoint_path.clone()
+    }
 }
 
 impl PrimitiveModule for VirtualModule {
-    fn get_module_name(&self) -> String { self.module_name.clone() }
+    fn get_module_name(&self) -> String {
+        self.module_name.clone()
+    }
 
     fn input_interface_typ(&self) -> InterfaceTyp {
         self.input_interface_typ.get_subinterface(self.input_endpoint_path.clone())

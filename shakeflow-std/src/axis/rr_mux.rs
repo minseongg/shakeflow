@@ -74,5 +74,7 @@ where Self: Interface
 impl<D1: Signal, D2: Signal, const P: Protocol> AxisRrMuxExt for (AxisChannel<D1, P>, AxisChannel<D2, P>) {
     type O = AxisChannel<(bool, D1, D2), P>;
 
-    fn axis_rr_mux(self, k: &mut CompositeModuleContext) -> Self::O { self.comb_inline(k, m()) }
+    fn axis_rr_mux(self, k: &mut CompositeModuleContext) -> Self::O {
+        self.comb_inline(k, m())
+    }
 }

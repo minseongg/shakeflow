@@ -27,11 +27,17 @@ pub struct ModuleInst {
 
 impl PrimitiveModule for ModuleInst {
     #[inline]
-    fn get_module_name(&self) -> String { self.module_name.clone() }
+    fn get_module_name(&self) -> String {
+        self.module_name.clone()
+    }
 
     #[inline]
-    fn input_interface_typ(&self) -> InterfaceTyp { self.input_interface_typ.clone() }
+    fn input_interface_typ(&self) -> InterfaceTyp {
+        self.input_interface_typ.clone()
+    }
 
     #[inline]
-    fn output_interface_typ(&self) -> InterfaceTyp { self.output_interface_typ.clone() }
+    fn output_interface_typ(&self) -> InterfaceTyp {
+        self.output_interface_typ.clone()
+    }
 }

@@ -32,7 +32,9 @@ pub const fn flog2(val: usize) -> usize {
 /// let byte_aligned = align_usize(value, 8);
 /// assert_eq!(byte_aligned, 16);
 /// ````
-pub const fn align_usize(value: usize, by: usize) -> usize { value.div_ceil(by) * by }
+pub const fn align_usize(value: usize, by: usize) -> usize {
+    value.div_ceil(by) * by
+}
 
 /// Returns bit-represented value of an integer.
 pub fn usize_to_bitvec(n: usize, value: usize) -> Vec<bool> {
@@ -43,7 +45,9 @@ pub fn usize_to_bitvec(n: usize, value: usize) -> Vec<bool> {
 
 /// Returns bit-represented value of an integer.
 // TODO: Make this function `const fn`.
-pub fn usize_to_bits<const N: usize>(value: usize) -> [bool; N] { usize_to_bitvec(N, value).try_into().unwrap() }
+pub fn usize_to_bits<const N: usize>(value: usize) -> [bool; N] {
+    usize_to_bitvec(N, value).try_into().unwrap()
+}
 
 /// Returns bit-represented value of an integer.
 // TODO: Make this function `const fn`.

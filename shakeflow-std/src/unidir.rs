@@ -7,7 +7,9 @@ use crate::*;
 channel! {UniChannel<V: Signal>, V, ()}
 
 impl<V: Signal> Clone for UniChannel<V> {
-    fn clone(&self) -> Self { Self { endpoint: self.endpoint.clone(), _marker: self._marker } }
+    fn clone(&self) -> Self {
+        Self { endpoint: self.endpoint.clone(), _marker: self._marker }
+    }
 }
 
 /// Slice extension.

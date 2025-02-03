@@ -52,4 +52,6 @@ pub fn signal(input: TokenStream) -> TokenStream {
 }
 
 #[proc_macro_derive(Interface, attributes(member))]
-pub fn interface(input: TokenStream) -> TokenStream { interface::derive(input) }
+pub fn interface(input: TokenStream) -> TokenStream {
+    interface::derive(input)
+}

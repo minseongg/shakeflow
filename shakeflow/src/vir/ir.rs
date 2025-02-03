@@ -125,10 +125,14 @@ impl Display for PortDeclaration {
 
 impl PortDeclaration {
     /// Creates new input port declaration.
-    pub fn input(width: usize, ident: String) -> Self { Self::Input(width, ident) }
+    pub fn input(width: usize, ident: String) -> Self {
+        Self::Input(width, ident)
+    }
 
     /// Creates new output port declaration.
-    pub fn output(width: usize, ident: String) -> Self { Self::Output(width, ident) }
+    pub fn output(width: usize, ident: String) -> Self {
+        Self::Output(width, ident)
+    }
 }
 
 /// Declaration.
@@ -147,11 +151,15 @@ pub enum Declaration {
 impl Declaration {
     /// Net declaration.
     #[inline]
-    pub fn net(shape: lir::Shape, ident: String) -> Self { Declaration::Net(shape, ident) }
+    pub fn net(shape: lir::Shape, ident: String) -> Self {
+        Declaration::Net(shape, ident)
+    }
 
     /// Reg declaration with no init value.
     #[inline]
-    pub fn reg(shape: lir::Shape, ident: String) -> Self { Declaration::Reg(shape, ident, None) }
+    pub fn reg(shape: lir::Shape, ident: String) -> Self {
+        Declaration::Reg(shape, ident, None)
+    }
 
     /// TODO: Documentation
     #[inline]
@@ -174,7 +182,9 @@ impl Declaration {
 
     /// Integer declaration.
     #[inline]
-    pub fn integer(ident: String) -> Self { Declaration::Integer(ident) }
+    pub fn integer(ident: String) -> Self {
+        Declaration::Integer(ident)
+    }
 }
 
 impl Display for Declaration {
@@ -228,12 +238,16 @@ pub fn gen_verilog_conts(conts: &[ContinuousAssign]) -> String {
 }
 
 impl Display for ContinuousAssign {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result { write!(f, "assign {} = {};", self.0, self.1) }
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "assign {} = {};", self.0, self.1)
+    }
 }
 
 impl ContinuousAssign {
     /// Creates new continuous assign.
-    pub fn new(lvalue: Expression, expr: Expression) -> Self { Self(lvalue, expr) }
+    pub fn new(lvalue: Expression, expr: Expression) -> Self {
+        Self(lvalue, expr)
+    }
 }
 
 /// Module instantiation.
@@ -510,15 +524,21 @@ impl Display for Expression {
 }
 
 impl From<String> for Expression {
-    fn from(ident: String) -> Self { Expression::ident(ident) }
+    fn from(ident: String) -> Self {
+        Expression::ident(ident)
+    }
 }
 
 impl Expression {
     /// Number.
-    pub fn number(num: String) -> Self { Self::Primary(Primary::Number(num)) }
+    pub fn number(num: String) -> Self {
+        Self::Primary(Primary::Number(num))
+    }
 
     /// Identifier.
-    pub fn ident(ident: String) -> Self { Self::Primary(Primary::HierarchicalIdentifier(ident, None)) }
+    pub fn ident(ident: String) -> Self {
+        Self::Primary(Primary::HierarchicalIdentifier(ident, None))
+    }
 
     /// TODO: Documentation
     pub fn with_range(self, range: Range) -> Self {
@@ -552,7 +572,9 @@ impl Expression {
     }
 
     /// Mintypmax expression.
-    pub fn mintypmax_expr(expr: Expression) -> Self { Self::Primary(Primary::MintypmaxExpression(Box::new(expr))) }
+    pub fn mintypmax_expr(expr: Expression) -> Self {
+        Self::Primary(Primary::MintypmaxExpression(Box::new(expr)))
+    }
 
     /// Unary operation.
     pub fn unary(op: lir::UnaryOp, expr: Self) -> Self {
@@ -582,10 +604,14 @@ impl Expression {
     }
 
     /// Returns `true` if the expression is primary.
-    pub fn is_primary(&self) -> bool { matches!(self, Self::Primary(_)) }
+    pub fn is_primary(&self) -> bool {
+        matches!(self, Self::Primary(_))
+    }
 
     /// Returns `true` if the expression is identifier.
-    pub fn is_identifier(&self) -> bool { matches!(self, Self::Primary(Primary::HierarchicalIdentifier(_, None))) }
+    pub fn is_identifier(&self) -> bool {
+        matches!(self, Self::Primary(Primary::HierarchicalIdentifier(_, None)))
+    }
 
     /// Converts into primary.
     #[must_use]
@@ -598,7 +624,9 @@ impl Expression {
     }
 
     /// Returns `true` if the expression is concatenation.
-    pub fn is_concat(&self) -> bool { matches!(self, Self::Primary(Primary::Concatenation(_))) }
+    pub fn is_concat(&self) -> bool {
+        matches!(self, Self::Primary(Primary::Concatenation(_)))
+    }
 
     /// Returns `true` if the expression is a `don't-care`.
     pub fn is_x(&self) -> bool {
@@ -629,10 +657,14 @@ impl Display for Range {
 
 impl Range {
     /// Creates new index.
-    pub fn new_index(index: Expression) -> Self { Self::Index(Box::new(index)) }
+    pub fn new_index(index: Expression) -> Self {
+        Self::Index(Box::new(index))
+    }
 
     /// Creates new range.
-    pub fn new_range(base: Expression, offset: Expression) -> Self { Self::Range(Box::new(base), Box::new(offset)) }
+    pub fn new_range(base: Expression, offset: Expression) -> Self {
+        Self::Range(Box::new(base), Box::new(offset))
+    }
 }
 
 impl Display for Primary {

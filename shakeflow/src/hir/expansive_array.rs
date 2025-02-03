@@ -15,7 +15,9 @@ pub struct ExpansiveArrayValue<V: Signal, const N: usize> {
 impl<V: Signal, const N: usize> Signal for ExpansiveArrayValue<V, N> {
     const WIDTH: usize = V::WIDTH * N;
 
-    fn transl(self) -> Vec<bool> { self.inner.transl() }
+    fn transl(self) -> Vec<bool> {
+        self.inner.transl()
+    }
 
     fn port_decls() -> lir::PortDecls {
         lir::PortDecls::Struct((0..N).map(|i| (Some(i.to_string()), V::port_decls())).collect())
@@ -33,7 +35,9 @@ impl<I: Interface, const N: usize> Interface for ExpansiveArray<I, N> {
     type Bwd = ExpansiveArrayValue<I::Bwd, N>;
     type Fwd = ExpansiveArrayValue<I::Fwd, N>;
 
-    fn interface_typ() -> lir::InterfaceTyp { lir::InterfaceTyp::ExpansiveArray(Box::new(I::interface_typ()), N) }
+    fn interface_typ() -> lir::InterfaceTyp {
+        lir::InterfaceTyp::ExpansiveArray(Box::new(I::interface_typ()), N)
+    }
 
     fn try_from_inner(interface: lir::Interface) -> Result<Self, InterfaceError> {
         if let lir::Interface::ExpansiveArray(inner) = interface {

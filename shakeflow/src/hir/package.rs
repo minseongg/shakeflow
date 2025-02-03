@@ -25,7 +25,9 @@ pub struct Package {
 
 impl Package {
     /// Adds the given module to package.
-    pub fn add<I: Interface, O: Interface>(&mut self, module: Module<I, O>) { self.modules.push(module.inner); }
+    pub fn add<I: Interface, O: Interface>(&mut self, module: Module<I, O>) {
+        self.modules.push(module.inner);
+    }
 
     /// Scan modules to see if there is submodule instatiation in the
     pub fn scan_submodule_inst(&self) -> Vec<lir::Module> {

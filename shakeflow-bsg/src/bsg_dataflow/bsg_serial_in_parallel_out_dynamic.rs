@@ -19,7 +19,9 @@ pub struct S<V: Signal, MaxEls: Num> {
 
 impl<V: Signal, MaxEls: Num> S<V, MaxEls> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<Self> { SProj { output: Expr::x(), count: 0.into(), len: 0.into() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        SProj { output: Expr::x(), count: 0.into(), len: 0.into() }.into()
+    }
 }
 
 pub fn m<V: Signal, MaxEls: Num>() -> Module<IC<V, MaxEls>, EC<V, MaxEls>> {

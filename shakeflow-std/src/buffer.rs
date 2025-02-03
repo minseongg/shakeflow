@@ -158,7 +158,9 @@ impl<I: Signal> UniChannel<Valid<I>> {
 impl<I: Signal> UniChannel<I> {
     /// Adds a buffer.
     #[must_use]
-    pub fn buffer(self, k: &mut CompositeModuleContext, init: Expr<I>) -> Self { self.comb_inline(k, m(init)) }
+    pub fn buffer(self, k: &mut CompositeModuleContext, init: Expr<I>) -> Self {
+        self.comb_inline(k, m(init))
+    }
 
     /// Adds a buffer with enable signal.
     pub fn buffer_en(self, k: &mut CompositeModuleContext, init: Expr<I>, en: UniChannel<bool>) -> Self {
@@ -186,12 +188,16 @@ impl<I: Signal, const P: Protocol> VrChannel<I, P> {
     /// Adds a buffer.
     ///
     /// It can receive data when the internal buffer is empty.
-    pub fn buffer(self, k: &mut CompositeModuleContext) -> VrChannel<I> { self.comb_inline(k, m_vr()) }
+    pub fn buffer(self, k: &mut CompositeModuleContext) -> VrChannel<I> {
+        self.comb_inline(k, m_vr())
+    }
 
     /// Adds a buffer.
     ///
     /// If the data can be received from the egress side, the data can also be received from the ingress side.
-    pub fn buffer_always(self, k: &mut CompositeModuleContext) -> VrChannel<I> { self.comb_inline(k, m_vr_always()) }
+    pub fn buffer_always(self, k: &mut CompositeModuleContext) -> VrChannel<I> {
+        self.comb_inline(k, m_vr_always())
+    }
 
     /// Adds a fifo.
     pub fn fifo<const N: usize>(self, k: &mut CompositeModuleContext) -> VrChannel<I> {

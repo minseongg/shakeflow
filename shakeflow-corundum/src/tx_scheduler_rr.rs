@@ -173,7 +173,9 @@ struct OpState<
 }
 
 impl<const OP_TABLE_SIZE: usize> Finish<OP_TABLE_SIZE> {
-    fn new_expr() -> Expr<Self> { FinishProj { ptr: 0.into(), status: false.into() }.into() }
+    fn new_expr() -> Expr<Self> {
+        FinishProj { ptr: 0.into(), status: false.into() }.into()
+    }
 }
 
 impl<
@@ -211,7 +213,9 @@ pub struct Cmd<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, con
 impl<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, const OP_TABLE_SIZE: usize> Command
     for Cmd<QUEUE_RAM_WIDTH, QUEUE_INDEX_WIDTH, OP_TABLE_SIZE>
 {
-    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> { lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr) }
+    fn collision(lhs: Expr<Self>, rhs: Expr<Self>) -> Expr<bool> {
+        lhs.queue_ram_addr.is_eq(rhs.queue_ram_addr)
+    }
 }
 
 impl<const QUEUE_RAM_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize, const OP_TABLE_SIZE: usize>

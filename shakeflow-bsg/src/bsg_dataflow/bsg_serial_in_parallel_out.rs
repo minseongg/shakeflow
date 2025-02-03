@@ -17,7 +17,9 @@ pub struct S<V: Signal, const ELS: usize> {
 
 impl<V: Signal, const ELS: usize> S<V, ELS> {
     /// Creates new expr.
-    pub fn new_expr() -> Expr<Self> { SProj { data: Expr::invalid().repeat(), num_els: 0.into() }.into() }
+    pub fn new_expr() -> Expr<Self> {
+        SProj { data: Expr::invalid().repeat(), num_els: 0.into() }.into()
+    }
 }
 
 pub fn m<V: Signal, const ELS: usize>() -> Module<IC<V, ELS>, EC<V, ELS>> {

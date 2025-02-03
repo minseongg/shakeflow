@@ -21,7 +21,9 @@ pub trait DequeExt {
 
 impl DequeExt for Expr<Deque> {
     /// Creates a new expr.
-    fn new(deque: Expr<bool>) -> Self { DequeProj { deque }.into() }
+    fn new(deque: Expr<bool>) -> Self {
+        DequeProj { deque }.into()
+    }
 }
 
 // Data-deque channel.
