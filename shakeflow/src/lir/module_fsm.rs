@@ -21,6 +21,31 @@ pub struct Fsm {
     pub(crate) init: ExprId,
 }
 
+impl Fsm {
+    /// Creates a new fsm.
+    #[allow(clippy::too_many_arguments)]
+    pub fn new(
+        module_name: String, input_interface_typ: InterfaceTyp, output_interface_typ: InterfaceTyp,
+        i_fwd_typ: PortDecls, o_bwd_typ: PortDecls, s_typ: PortDecls,
+        f: impl FnOnce(ExprId, ExprId, ExprId) -> (ExprId, ExprId, ExprId), init: ExprId,
+    ) -> Self {
+        let i_fwd = Expr::input(i_fwd_typ, Some("in".to_string())).into();
+        let o_bwd = Expr::input(o_bwd_typ, Some("out".to_string())).into();
+        let s = Expr::input(s_typ, Some("st".to_string())).into();
+        let (o_fwd, i_bwd, s) = f(i_fwd, o_bwd, s);
+
+        Fsm {
+            input_interface_typ,
+            output_interface_typ,
+            module_name,
+            output_fwd: o_fwd,
+            input_bwd: i_bwd,
+            state: s,
+            init,
+        }
+    }
+}
+
 impl PrimitiveModule for Fsm {
     #[inline]
     fn get_module_name(&self) -> String {

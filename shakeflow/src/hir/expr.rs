@@ -88,6 +88,12 @@ impl<V: Signal> From<lir::Expr> for Expr<V> {
     }
 }
 
+impl<V: Signal> From<lir::ExprId> for Expr<V> {
+    fn from(id: lir::ExprId) -> Self {
+        Self { id, _marker: PhantomData }
+    }
+}
+
 impl<V: Signal> From<V> for Expr<V> {
     /// Synthesizes expr from constant.
     fn from(signal: V) -> Self {

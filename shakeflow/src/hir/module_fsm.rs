@@ -57,19 +57,19 @@ impl<
     > From<Fsm<I, O, S, F>> for lir::Fsm
 {
     fn from(module: Fsm<I, O, S, F>) -> Self {
-        let i_fwd = Expr::input(Some("in".to_string()));
-        let o_bwd = Expr::input(Some("out".to_string()));
-        let s = Expr::input(Some("st".to_string()));
-        let (o_fwd, i_bwd, s) = (module.f)(i_fwd, o_bwd, s);
-
-        lir::Fsm {
-            input_interface_typ: I::interface_typ(),
-            output_interface_typ: O::interface_typ(),
-            module_name: module.module_name,
-            output_fwd: o_fwd.into_inner(),
-            input_bwd: i_bwd.into_inner(),
-            state: s.into_inner(),
-            init: module.init.into_inner(),
-        }
+        lir::Fsm::new(
+            module.module_name,
+            I::interface_typ(),
+            O::interface_typ(),
+            I::Fwd::port_decls(),
+            O::Bwd::port_decls(),
+            S::port_decls(),
+            |i_fwd: lir::ExprId, o_bwd: lir::ExprId, s: lir::ExprId| {
+                let (i_fwd, o_bwd, s) = (Expr::from(i_fwd), Expr::from(o_bwd), Expr::from(s));
+                let (o_fwd, i_bwd, s) = (module.f)(i_fwd, o_bwd, s);
+                (o_fwd.into_inner(), i_bwd.into_inner(), s.into_inner())
+            },
+            module.init.into_inner(),
+        )
     }
 }
