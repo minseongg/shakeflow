@@ -574,3 +574,27 @@ impl Expr {
         }
     }
 }
+
+impl From<Expr> for ExprId {
+    fn from(inner: Expr) -> Self {
+        ExprId::alloc_expr(Merkle::new(inner))
+    }
+}
+
+impl Expr {
+    /// Don't care value.
+    pub fn x(typ: PortDecls) -> Expr {
+        Expr::X { typ }
+    }
+
+    /// Input expr.
+    pub fn input(typ: PortDecls, name: Option<String>) -> Expr {
+        Expr::Input { name, typ }
+    }
+
+    /// Member of input expr.
+    pub fn member(struct_typ: PortDecls, input: ExprId, index: usize) -> Expr {
+        assert!(matches!(struct_typ, PortDecls::Struct(_)), "Input of `member` should have struct value");
+        Expr::Member { inner: input, index }
+    }
+}

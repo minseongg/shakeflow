@@ -37,12 +37,12 @@ impl<V: Signal> Copy for Expr<V> {}
 impl<V: Signal> Expr<V> {
     /// Don't care value.
     pub fn x() -> Self {
-        lir::Expr::X { typ: V::port_decls() }.into()
+        lir::Expr::x(V::port_decls()).into()
     }
 
     /// Input expr.
     pub fn input(name: Option<String>) -> Self {
-        lir::Expr::Input { name, typ: V::port_decls() }.into()
+        lir::Expr::input(V::port_decls(), name).into()
     }
 
     /// Member of input expr.
@@ -53,7 +53,7 @@ impl<V: Signal> Expr<V> {
             }
             _ => panic!("Input of `member` should have struct value"),
         }
-        lir::Expr::Member { inner: input.id, index }.into()
+        lir::Expr::member(W::port_decls(), input.id, index).into()
     }
 
     /// Consumes the `Expr`, returning the wrapped `lir::ExprId`.
@@ -84,7 +84,7 @@ impl<V: Signal> From<lir::Expr> for Expr<V> {
     /// Constructs expr from LIR expr.
     fn from(inner: lir::Expr) -> Self {
         assert_eq!(V::port_decls(), inner.port_decls());
-        Self { id: lir::ExprId::alloc_expr(Merkle::new(inner)), _marker: PhantomData }
+        Self { id: lir::ExprId::from(inner), _marker: PhantomData }
     }
 }
 
