@@ -57,12 +57,18 @@ impl<
     > From<Fsm<I, O, S, F>> for lir::Fsm
 {
     fn from(module: Fsm<I, O, S, F>) -> Self {
+        let input_interface_typ = I::interface_typ();
+        let output_interface_typ = O::interface_typ();
+
+        assert_eq!(input_interface_typ.fwd(), I::Fwd::port_decls());
+        assert_eq!(input_interface_typ.bwd(), I::Bwd::port_decls());
+        assert_eq!(output_interface_typ.fwd(), O::Fwd::port_decls());
+        assert_eq!(output_interface_typ.bwd(), O::Bwd::port_decls());
+
         lir::Fsm::new(
             module.module_name,
             I::interface_typ(),
             O::interface_typ(),
-            I::Fwd::port_decls(),
-            O::Bwd::port_decls(),
             S::port_decls(),
             |i_fwd: lir::ExprId, o_bwd: lir::ExprId, s: lir::ExprId| {
                 let (i_fwd, o_bwd, s) = (Expr::from(i_fwd), Expr::from(o_bwd), Expr::from(s));

@@ -196,6 +196,42 @@ pub enum InterfaceTyp {
 }
 
 impl InterfaceTyp {
+    /// Returns forward signal port declarations.
+    pub fn fwd(&self) -> PortDecls {
+        match self {
+            InterfaceTyp::Unit => PortDecls::Bits(Shape::new([0])),
+            InterfaceTyp::Channel(typ) => typ.fwd.clone(),
+            InterfaceTyp::Array(typ, n) => typ.fwd().multiple(*n),
+            InterfaceTyp::ExpansiveArray(typ, n) => {
+                PortDecls::Struct((0..*n).map(|i| (Some(i.to_string()), typ.fwd())).collect())
+            }
+            InterfaceTyp::Struct(inner) => PortDecls::Struct(
+                inner
+                    .into_iter()
+                    .map(|(name, (_sep, typ))| (if name.is_empty() { None } else { Some(name.clone()) }, typ.fwd()))
+                    .collect(),
+            ),
+        }
+    }
+
+    /// Returns backward signal port declarations.
+    pub fn bwd(&self) -> PortDecls {
+        match self {
+            InterfaceTyp::Unit => PortDecls::Bits(Shape::new([0])),
+            InterfaceTyp::Channel(typ) => typ.bwd.clone(),
+            InterfaceTyp::Array(typ, n) => typ.bwd().multiple(*n),
+            InterfaceTyp::ExpansiveArray(typ, n) => {
+                PortDecls::Struct((0..*n).map(|i| (Some(i.to_string()), typ.bwd())).collect())
+            }
+            InterfaceTyp::Struct(inner) => PortDecls::Struct(
+                inner
+                    .into_iter()
+                    .map(|(name, (_sep, typ))| (if name.is_empty() { None } else { Some(name.clone()) }, typ.bwd()))
+                    .collect(),
+            ),
+        }
+    }
+
     /// TODO: Documentation
     pub fn get_channel_typ(self) -> Option<ChannelTyp> {
         if let InterfaceTyp::Channel(channel_typ) = self {

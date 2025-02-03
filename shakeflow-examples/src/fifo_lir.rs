@@ -10,8 +10,6 @@ pub fn fifo(_elt_typ: lir::PortDecls, _capacity: usize, _pipe: bool, _flow: bool
         "fifo".to_string(),
         VrChannel::<bool>::interface_typ(),
         VrChannel::<bool>::interface_typ(),
-        Valid::<bool>::port_decls(),
-        Ready::port_decls(),
         <()>::port_decls(),
         |i_fwd, o_bwd, s| {
             let o_fwd = i_fwd;
