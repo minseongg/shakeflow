@@ -4,6 +4,7 @@
 mod arbiter;
 mod custom_channel;
 mod enum_signal;
+mod fifo_lir;
 mod fir_filter;
 mod int_adder;
 mod pulse_merge;
@@ -17,6 +18,11 @@ use std::path::Path;
 use shakeflow::{Package, PackageError};
 
 fn main() -> Result<(), PackageError> {
+    {
+        use shakeflow::Signal;
+        fifo_lir::fifo(<bool>::port_decls(), 8, false, false);
+    };
+
     let mut package = Package::default();
     package.add(arbiter::arbiter());
     package.add(fir_filter::fir_filter::<4, 3>([[false, false, true, false], [true, false, true, true], [
