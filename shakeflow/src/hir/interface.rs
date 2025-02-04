@@ -39,7 +39,7 @@ pub trait Interface: 'static + Sized + Debug {
     fn comb_inline<O: Interface>(self, k: &mut CompositeModuleContext, module: Module<Self, O>) -> O {
         // Adds submodule.
         let input_interface = self.try_into_inner().expect("internal compiler error");
-        let output_interface = k.inner.add_submodule(module.inner, input_interface);
+        let output_interface = input_interface.comb_inline(&mut k.inner, module.inner);
 
         // Converts output interface.
         O::try_from_inner(output_interface).expect("internal compiler error")

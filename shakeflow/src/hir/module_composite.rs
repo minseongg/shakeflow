@@ -109,44 +109,12 @@ pub fn composite<I: Interface, O: Interface, F: FnOnce(I, &mut CompositeModuleCo
 
 /// Creates new input interface from given interface type.
 pub fn input_interface<I: Interface>() -> lir::Interface {
-    I::interface_typ()
-        .into_primitives()
-        .into_iter()
-        .map(|(typ, path)| {
-            (
-                match typ {
-                    lir::InterfaceTyp::Unit => lir::Interface::Unit,
-                    lir::InterfaceTyp::Channel(channel_typ) => lir::Interface::Channel(lir::Channel {
-                        typ: channel_typ,
-                        endpoint: lir::Endpoint::input(path.clone()),
-                    }),
-                    _ => panic!("not primitive type"),
-                },
-                path,
-            )
-        })
-        .collect()
+    lir::input_interface(&I::interface_typ())
 }
 
 /// Creates new temporary interface from given interface type.
 pub fn temp_interface<O: Interface>() -> lir::Interface {
-    O::interface_typ()
-        .into_primitives()
-        .into_iter()
-        .map(|(typ, path)| {
-            (
-                match typ {
-                    lir::InterfaceTyp::Unit => lir::Interface::Unit,
-                    lir::InterfaceTyp::Channel(channel_typ) => lir::Interface::Channel(lir::Channel {
-                        typ: channel_typ,
-                        endpoint: lir::Endpoint::temp(path.clone()),
-                    }),
-                    _ => panic!("not primitive type"),
-                },
-                path,
-            )
-        })
-        .collect()
+    lir::temp_interface(&O::interface_typ())
 }
 
 impl<I: Interface, O: Interface> CompositeModule<I, O> {
@@ -283,9 +251,7 @@ impl<I: Interface, O: Interface> CompositeModule<I, O> {
 
     /// Builds a new module.
     pub fn build(self) -> Module<I, O> {
-        let name = self.inner.name.clone();
-
-        Module::new(self.inner.build(&name))
+        Module::new(self.inner.build())
     }
 
     /// Builds a new module for array interface.

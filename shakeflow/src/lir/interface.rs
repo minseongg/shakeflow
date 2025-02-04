@@ -155,6 +155,38 @@ pub enum Interface {
 }
 
 impl Interface {
+    /// `comb_inline` in LIR.
+    ///
+    /// For more details, please consult `comb_inline` method in HIR.
+    pub fn comb_inline(self, k: &mut CompositeModule, module: Module) -> Interface {
+        k.add_submodule(module, self)
+    }
+
+    /// `fsm` in LIR.
+    ///
+    /// For more details, please consult `fsm` method in HIR.
+    pub fn fsm(
+        self, k: &mut CompositeModule, module_name: Option<&str>, output_interface_typ: InterfaceTyp, s_typ: PortDecls,
+        f: impl Fn(ExprId, ExprId, ExprId) -> (ExprId, ExprId, ExprId), init: ExprId,
+    ) -> Interface {
+        let input_interface_typ = self.typ();
+
+        self.comb_inline(
+            k,
+            Fsm::new(
+                module_name.unwrap_or("fsm").to_string(),
+                input_interface_typ,
+                output_interface_typ,
+                s_typ,
+                f,
+                init,
+            )
+            .into(),
+        )
+    }
+}
+
+impl Interface {
     /// TODO: Documentation
     pub fn get_channel(self) -> Option<Channel> {
         if let Interface::Channel(channel) = self {
