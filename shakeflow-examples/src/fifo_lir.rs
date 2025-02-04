@@ -1,23 +1,24 @@
 //! FIFO implemented in LIR.
 
-use shakeflow::lir::{ChannelTyp, InterfaceTyp, Shape};
 use shakeflow::*;
 
 /// Returns FIFO IO type.
-pub fn fifo_io_typ(elt: lir::PortDecls) -> InterfaceTyp {
-    let fwd =
-        lir::PortDecls::Struct(vec![(None, elt), (Some("valid".to_string()), lir::PortDecls::Bits(Shape::new([1])))]);
-    let bwd = lir::PortDecls::Struct(vec![(Some("ready".to_string()), lir::PortDecls::Bits(Shape::new([1])))]);
-    InterfaceTyp::Channel(ChannelTyp { fwd, bwd })
+pub fn fifo_io_typ(elt: lir::PortDecls) -> lir::InterfaceTyp {
+    let fwd = lir::PortDecls::Struct(vec![
+        (None, elt),
+        (Some("valid".to_string()), lir::PortDecls::Bits(lir::Shape::new([1]))),
+    ]);
+    let bwd = lir::PortDecls::Struct(vec![(Some("ready".to_string()), lir::PortDecls::Bits(lir::Shape::new([1])))]);
+    lir::InterfaceTyp::Channel(lir::ChannelTyp { fwd, bwd })
 }
 
 /// Returns FIFO state type.
 pub fn fifo_s_typ(elt: lir::PortDecls, capacity: usize) -> lir::PortDecls {
     lir::PortDecls::Struct(vec![
         (Some("inner".to_string()), elt.multiple(capacity)),
-        (Some("raddr".to_string()), lir::PortDecls::Bits(Shape::new([clog2(capacity)]))),
-        (Some("waddr".to_string()), lir::PortDecls::Bits(Shape::new([clog2(capacity)]))),
-        (Some("len".to_string()), lir::PortDecls::Bits(Shape::new([clog2(capacity + 1)]))),
+        (Some("raddr".to_string()), lir::PortDecls::Bits(lir::Shape::new([clog2(capacity)]))),
+        (Some("waddr".to_string()), lir::PortDecls::Bits(lir::Shape::new([clog2(capacity)]))),
+        (Some("len".to_string()), lir::PortDecls::Bits(lir::Shape::new([clog2(capacity + 1)]))),
     ])
 }
 
