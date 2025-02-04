@@ -1,6 +1,7 @@
 //! Low-level IR.
 
 mod expr;
+mod interface;
 mod module;
 mod module_composite;
 mod module_fsm;
@@ -9,6 +10,7 @@ mod module_virtual;
 mod prelude;
 
 pub use expr::*;
+pub use interface::*;
 pub use module::*;
 pub use module_composite::*;
 pub use module_fsm::*;
