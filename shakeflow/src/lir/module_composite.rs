@@ -158,6 +158,16 @@ impl CompositeModule {
     }
 }
 
+/// Creates a new composite module with given prefix for input and output channels.
+pub fn composite(
+    name: &str, interface_typ: InterfaceTyp, input_prefix: Option<&str>, output_prefix: Option<&str>,
+    f: impl FnOnce(Interface, &mut CompositeModule) -> Interface,
+) -> CompositeModule {
+    CompositeModule::new(name.to_string(), input_prefix.map(String::from), output_prefix.map(String::from))
+        .wrap(interface_typ, |_, iw, o| (o, iw))
+        .and_then(f)
+}
+
 /// Creates new input interface from given interface type.
 pub fn input_interface(typ: &InterfaceTyp) -> Interface {
     typ.into_primitives()
