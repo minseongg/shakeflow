@@ -53,7 +53,7 @@ impl<V: Signal> Expr<V> {
             }
             _ => panic!("Input of `member` should have struct value"),
         }
-        lir::Expr::member(W::port_decls(), input.id, index).into()
+        lir::Expr::member(input.id, index).into()
     }
 
     /// Consumes the `Expr`, returning the wrapped `lir::ExprId`.

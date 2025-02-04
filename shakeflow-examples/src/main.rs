@@ -20,7 +20,7 @@ use shakeflow::{Package, PackageError};
 fn main() -> Result<(), PackageError> {
     {
         use shakeflow::Signal;
-        fifo_lir::fifo(<bool>::port_decls(), 8, false, false);
+        fifo_lir::fifo(<u16>::port_decls(), 8);
     };
 
     let mut package = Package::default();

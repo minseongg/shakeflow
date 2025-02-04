@@ -1,10 +1,12 @@
 //! LIR Expr.
 
 use std::cell::RefCell;
+use std::cmp::Ordering;
 
 use hashcons::merkle::Merkle;
 
 use super::*;
+use crate::utils::*;
 
 /// Expr Id
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -583,18 +585,137 @@ impl From<Expr> for ExprId {
 
 impl Expr {
     /// Don't care value.
-    pub fn x(typ: PortDecls) -> Expr {
-        Expr::X { typ }
+    pub fn x(typ: PortDecls) -> ExprId {
+        Expr::X { typ }.into()
     }
 
     /// Input expr.
-    pub fn input(typ: PortDecls, name: Option<String>) -> Expr {
-        Expr::Input { name, typ }
+    pub fn input(typ: PortDecls, name: Option<String>) -> ExprId {
+        Expr::Input { name, typ }.into()
     }
 
     /// Member of input expr.
-    pub fn member(struct_typ: PortDecls, input: ExprId, index: usize) -> Expr {
-        assert!(matches!(struct_typ, PortDecls::Struct(_)), "Input of `member` should have struct value");
-        Expr::Member { inner: input, index }
+    pub fn member(input: ExprId, index: usize) -> ExprId {
+        Expr::Member { inner: input, index }.into()
+    }
+
+    /// Projection.
+    pub fn proj(struct_typ: PortDecls, input: ExprId) -> Vec<(Option<String>, ExprId)> {
+        let PortDecls::Struct(fields_typ) = struct_typ else {
+            panic!("Input of `proj` should have struct value");
+        };
+
+        fields_typ
+            .into_iter()
+            .enumerate()
+            .map(|(index, (name, _))| (name, Expr::Member { inner: input, index }.into()))
+            .collect()
+    }
+
+    /// Unprojection.
+    pub fn unproj(inner: Vec<(Option<String>, ExprId)>) -> ExprId {
+        Expr::Struct { inner }.into()
+    }
+
+    /// Checks whether two exprs are equal.
+    pub fn is_eq(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::EqArithmetic, lhs, rhs }.into()
+    }
+
+    /// Checks whether `lhs` is less than `rhs`.
+    pub fn is_lt(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Less, lhs, rhs }.into()
+    }
+
+    /// Checks whether `lhs` is greater than `rhs`.
+    pub fn is_gt(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Greater, lhs, rhs }.into()
+    }
+
+    /// Checks whether `lhs` is less or equal than `rhs`.
+    pub fn is_le(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::LessEq, lhs, rhs }.into()
+    }
+
+    /// Checks whether `lhs` is greater or equal than `rhs`.
+    pub fn is_ge(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::GreaterEq, lhs, rhs }.into()
+    }
+
+    /// `lhs` + `rhs`.
+    pub fn add(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Add, lhs, rhs }.into()
+    }
+
+    /// `lhs` - `rhs`.
+    pub fn sub(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Sub, lhs, rhs }.into()
+    }
+
+    /// `lhs` | `rhs`.
+    pub fn bitor(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Or, lhs, rhs }.into()
+    }
+
+    /// `lhs` & `rhs`.
+    pub fn bitand(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::And, lhs, rhs }.into()
+    }
+
+    /// Cond operator.
+    pub fn cond(cond: ExprId, lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::Cond { cond, lhs, rhs }.into()
+    }
+
+    /// Not operator.
+    pub fn not(inner: ExprId) -> ExprId {
+        Expr::Not { inner }.into()
+    }
+
+    /// Clips the array `inner` (w/ type `[elt_typ; n]`) by `[from+:count]`.
+    pub fn clip(elt_typ: PortDecls, n: usize, inner: ExprId, from: usize, count: usize) -> ExprId {
+        let mut bits = usize_to_bitvec(n, from).to_vec();
+        bits.truncate(clog2(n));
+
+        Expr::Clip {
+            inner,
+            from: Expr::Constant { bits, typ: PortDecls::Bits(Shape::new([clog2(n)])) }.into(),
+            size: count,
+            typ_elt: elt_typ,
+        }
+        .into()
+    }
+
+    /// Appends exprs.
+    pub fn append(elt_typ: PortDecls, lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::Append { lhs, rhs, typ_elt: elt_typ }.into()
+    }
+
+    /// Resizes by truncation or zero-extension
+    pub fn resize(elt_typ: PortDecls, inner: ExprId, n: usize, m: usize) -> ExprId {
+        match n.cmp(&m) {
+            Ordering::Less => {
+                let elt = Expr::Constant { bits: vec![false; elt_typ.width()], typ: elt_typ.clone() }.into();
+                let elts = Expr::Repeat { inner: elt, count: m - n }.into();
+                Expr::append(elt_typ, inner, elts)
+            }
+            Ordering::Equal => inner,
+            Ordering::Greater => Expr::clip(elt_typ, n, inner, 0, m),
+        }
+    }
+
+    /// Constructs expr from `usize` value.
+    pub fn from_usize(value: usize, width: usize) -> ExprId {
+        Expr::Constant { bits: usize_to_bitvec(width, value), typ: PortDecls::Bits(Shape::new([width])) }.into()
+    }
+
+    /// Get `index`-th element.
+    pub fn get(elt_typ: PortDecls, inner: ExprId, index: ExprId) -> ExprId {
+        Expr::Get { inner, typ_elt: elt_typ, index }.into()
+    }
+
+    /// Set `index`-th element to `elt`
+    pub fn set(inner: ExprId, index: ExprId, elt: ExprId) -> ExprId {
+        Expr::Set { inner, index, elt }.into()
     }
 }

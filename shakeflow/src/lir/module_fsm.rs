@@ -31,9 +31,9 @@ impl Fsm {
         let i_fwd_typ = input_interface_typ.fwd();
         let o_bwd_typ = output_interface_typ.bwd();
 
-        let i_fwd = Expr::input(i_fwd_typ, Some("in".to_string())).into();
-        let o_bwd = Expr::input(o_bwd_typ, Some("out".to_string())).into();
-        let s = Expr::input(s_typ, Some("st".to_string())).into();
+        let i_fwd = Expr::input(i_fwd_typ, Some("in".to_string()));
+        let o_bwd = Expr::input(o_bwd_typ, Some("out".to_string()));
+        let s = Expr::input(s_typ, Some("st".to_string()));
         let (o_fwd, i_bwd, s) = f(i_fwd, o_bwd, s);
 
         Fsm {
