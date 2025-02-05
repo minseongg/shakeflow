@@ -718,4 +718,9 @@ impl Expr {
     pub fn set(inner: ExprId, index: ExprId, elt: ExprId) -> ExprId {
         Expr::Set { inner, index, elt }.into()
     }
+
+    /// Repeats expr.
+    pub fn repeat(inner: ExprId, count: usize) -> ExprId {
+        Expr::Repeat { inner, count }.into()
+    }
 }
