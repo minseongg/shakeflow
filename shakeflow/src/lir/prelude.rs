@@ -131,6 +131,11 @@ impl PortDecls {
 
         ValueTypIterator { inner: iter_vec.into() }
     }
+
+    /// Returns unsigned integer.
+    pub fn uint(width: usize) -> Self {
+        PortDecls::Bits(Shape::new([width]))
+    }
 }
 
 impl IntoIterator for &PortDecls {

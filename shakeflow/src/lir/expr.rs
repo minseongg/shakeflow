@@ -421,9 +421,7 @@ impl Expr {
                 inner.iter().map(|(name, member)| (name.clone(), member.into_expr().port_decls())).collect(),
             ),
             Self::Resize { typ_elt, count, .. } => typ_elt.multiple(*count),
-            Self::LeftShift { .. } | Self::RightShift { .. } | Self::BinaryOp { .. } => {
-                PortDecls::Bits(Shape::new([self.width()]))
-            }
+            Self::LeftShift { .. } | Self::RightShift { .. } | Self::BinaryOp { .. } => PortDecls::uint(self.width()),
             Self::Chunk { inner, .. } => inner.into_expr().port_decls(),
             Self::Not { inner } => inner.into_expr().port_decls(),
             Self::Fold { init, .. } => init.into_expr().port_decls(),
@@ -436,7 +434,7 @@ impl Expr {
                 typ_elt.multiple(count)
             }
             Self::Get { typ_elt, .. } => typ_elt.clone(),
-            Self::Repr { inner } => PortDecls::Bits(Shape::new([inner.into_expr().width()])),
+            Self::Repr { inner } => PortDecls::uint(inner.into_expr().width()),
             Self::Map { inner, typ_elt, func } => {
                 let count = inner.into_expr().width() / typ_elt.width();
                 let func_typ = func.into_expr().port_decls();
@@ -453,7 +451,7 @@ impl Expr {
                 let count = inner.into_expr().width() / typ_elt.width();
                 typ_elt.multiple(count)
             }
-            Self::Sum { width_elt, .. } => PortDecls::Bits(Shape::new([*width_elt])),
+            Self::Sum { width_elt, .. } => PortDecls::uint(*width_elt),
             Self::Cond { lhs, rhs, .. } => {
                 let lhs_typ = lhs.into_expr().port_decls();
                 let rhs_typ = rhs.into_expr().port_decls();
@@ -679,7 +677,7 @@ impl Expr {
 
         Expr::Clip {
             inner,
-            from: Expr::Constant { bits, typ: PortDecls::Bits(Shape::new([clog2(n)])) }.into(),
+            from: Expr::Constant { bits, typ: PortDecls::uint(clog2(n)) }.into(),
             size: count,
             typ_elt: elt_typ,
         }
@@ -706,7 +704,7 @@ impl Expr {
 
     /// Constructs expr from `usize` value.
     pub fn from_usize(value: usize, width: usize) -> ExprId {
-        Expr::Constant { bits: usize_to_bitvec(width, value), typ: PortDecls::Bits(Shape::new([width])) }.into()
+        Expr::Constant { bits: usize_to_bitvec(width, value), typ: PortDecls::uint(width) }.into()
     }
 
     /// Get `index`-th element.
