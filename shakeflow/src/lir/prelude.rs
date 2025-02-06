@@ -136,6 +136,11 @@ impl PortDecls {
     pub fn uint(width: usize) -> Self {
         PortDecls::Bits(Shape::new([width]))
     }
+
+    /// Returns whether the port decls is uint.
+    pub fn is_uint(&self) -> bool {
+        matches!(self, PortDecls::Bits(_)) && self.max_dim() == 1
+    }
 }
 
 impl IntoIterator for &PortDecls {
