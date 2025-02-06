@@ -721,4 +721,9 @@ impl Expr {
     pub fn repeat(inner: ExprId, count: usize) -> ExprId {
         Expr::Repeat { inner, count }.into()
     }
+
+    /// Concatenates exprs.
+    pub fn concat_array(elt_typ: PortDecls, inner: Vec<ExprId>) -> ExprId {
+        Expr::ConcatArray { inner, elt_typ }.into()
+    }
 }
