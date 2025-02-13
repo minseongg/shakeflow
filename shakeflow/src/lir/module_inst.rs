@@ -41,3 +41,23 @@ impl PrimitiveModule for ModuleInst {
         self.output_interface_typ.clone()
     }
 }
+
+impl ModuleInst {
+    /// Generates module instantiation from a shakeflow module.
+    pub fn from_module(
+        module_name: String, inst_name: String, params: Vec<(String, usize)>, has_clkrst: bool,
+        input_prefix: Option<String>, output_prefix: Option<String>, module: Module,
+    ) -> Self {
+        Self {
+            input_interface_typ: module.inner.input_interface_typ(),
+            output_interface_typ: module.inner.output_interface_typ(),
+            module_name,
+            inst_name,
+            params,
+            has_clkrst,
+            input_prefix,
+            output_prefix,
+            module: Some(module),
+        }
+    }
+}
