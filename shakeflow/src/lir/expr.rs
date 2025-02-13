@@ -650,6 +650,21 @@ impl Expr {
         Expr::BinaryOp { op: BinaryOp::Sub, lhs, rhs }.into()
     }
 
+    /// `lhs` * `rhs`.
+    pub fn mul(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Mul, lhs, rhs }.into()
+    }
+
+    /// `lhs` / `rhs`.
+    pub fn div(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Div, lhs, rhs }.into()
+    }
+
+    /// `lhs` % `rhs`.
+    pub fn rem(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Mod, lhs, rhs }.into()
+    }
+
     /// `lhs` | `rhs`.
     pub fn bitor(lhs: ExprId, rhs: ExprId) -> ExprId {
         Expr::BinaryOp { op: BinaryOp::Or, lhs, rhs }.into()
@@ -658,6 +673,21 @@ impl Expr {
     /// `lhs` & `rhs`.
     pub fn bitand(lhs: ExprId, rhs: ExprId) -> ExprId {
         Expr::BinaryOp { op: BinaryOp::And, lhs, rhs }.into()
+    }
+
+    /// `lhs` ^ `rhs`.
+    pub fn bitxor(lhs: ExprId, rhs: ExprId) -> ExprId {
+        Expr::BinaryOp { op: BinaryOp::Xor, lhs, rhs }.into()
+    }
+
+    /// `inner` << `rhs`.
+    pub fn shl(inner: ExprId, rhs: ExprId) -> ExprId {
+        Expr::LeftShift { inner, rhs }.into()
+    }
+
+    /// `inner` >> `rhs`.
+    pub fn shr(inner: ExprId, rhs: ExprId) -> ExprId {
+        Expr::RightShift { inner, rhs }.into()
     }
 
     /// Cond operator.
