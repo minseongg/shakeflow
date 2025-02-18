@@ -482,7 +482,7 @@ pub(super) fn gen_module_fsm_state_init(
 ) -> Result<Vec<(lir::Shape, String, LogicValues)>, lir::ModuleError> {
     let state_init_value = gen_expr_literal(init);
 
-    Ok(izip!(state.port_decls().iter(), state_init_value.iter())
+    Ok(zip_eq(state.port_decls().iter(), state_init_value.iter().filter(|v| !v.is_empty()))
         .map(|((name, shape), init_value)| {
             let net_name = join_options("_", [Some(format!("{}_st", ctx.get_prefix().unwrap())), name]).unwrap();
             (shape, net_name, init_value)
