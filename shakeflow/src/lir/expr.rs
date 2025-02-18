@@ -737,6 +737,11 @@ impl Expr {
         Expr::Constant { bits: usize_to_bitvec(width, value), typ: PortDecls::uint(width) }.into()
     }
 
+    /// Constructs expr from `bool` value.
+    pub fn from_bool(value: bool) -> ExprId {
+        Expr::from_usize(value as usize, 1)
+    }
+
     /// Get `index`-th element.
     pub fn get(elt_typ: PortDecls, inner: ExprId, index: ExprId) -> ExprId {
         Expr::Get { inner, typ_elt: elt_typ, index }.into()
