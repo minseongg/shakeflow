@@ -46,6 +46,27 @@ impl Fsm {
             init,
         }
     }
+
+    /// Creates a new combinational fsm.
+    pub fn new_comb(
+        module_name: String, input_interface_typ: InterfaceTyp, output_interface_typ: InterfaceTyp,
+        f: impl FnOnce(ExprId, ExprId) -> (ExprId, ExprId),
+    ) -> Self {
+        let s_typ = PortDecls::uint(0);
+        let s_init = Expr::x(PortDecls::uint(0));
+
+        Fsm::new(
+            module_name,
+            input_interface_typ,
+            output_interface_typ,
+            s_typ,
+            |ip, er, s| {
+                let (ep, ir) = f(ip, er);
+                (ep, ir, s)
+            },
+            s_init,
+        )
+    }
 }
 
 impl PrimitiveModule for Fsm {
