@@ -50,23 +50,7 @@ impl CompositeModuleContext {
 
     /// inline version
     pub fn register_inline<I: Interface, O: Interface>(&mut self, module: Module<I, O>) -> Module<I, O> {
-        assert!(
-            matches!(&*module.inner.inner, lir::ModuleInner::Composite(..)),
-            "Only `CompositeModule` can be registered to the context"
-        );
-        let registered_index = self.inner.registered_modules.len();
-        self.inner.registered_modules.push(module.inner.clone());
-        let virtual_module = lir::VirtualModule {
-            module_name: module.inner.get_module_name(),
-            registered_index,
-            input_prefix: module.inner.inner.input_prefix().unwrap_or_else(|| "in".to_string()),
-            output_prefix: module.inner.inner.output_prefix().unwrap_or_else(|| "out".to_string()),
-            input_interface_typ: module.inner.inner.input_interface_typ(),
-            input_endpoint_path: lir::EndpointPath::default(),
-            output_interface_typ: module.inner.inner.output_interface_typ(),
-            output_endpoint_path: lir::EndpointPath::default(),
-        };
-        Module::new(virtual_module.into())
+        Module::new(self.inner.register_inline(module.inner))
     }
 
     /// register inline

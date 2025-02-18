@@ -50,3 +50,21 @@ pub fn read_write_inline_test_m() -> Module<VrChannel<Bits<U<8>>>, VrChannel<Bit
     })
     .build()
 }
+
+fn spsc<I: Interface>(k: &mut CompositeModuleContext) -> (Module<I, ()>, Module<(), I>) {
+    let module = composite::<(I, ()), ((), I), _>("spsc", Some("i"), Some("o"), |(i, _), _| ((), i)).build();
+    k.register_inline(module).split()
+}
+
+pub fn spsc_test_m() -> Module<VrChannel<Bits<U<8>>>, VrChannel<Bits<U<8>>>> {
+    composite::<VrChannel<Bits<U<8>>>, VrChannel<Bits<U<8>>>, _>("spsc_test", Some("i"), Some("o"), |i, k| {
+        let (sender, receiver) = spsc(k);
+
+        // Send.
+        i.comb_inline(k, sender);
+
+        // Receive.
+        ().comb_inline(k, receiver)
+    })
+    .build()
+}

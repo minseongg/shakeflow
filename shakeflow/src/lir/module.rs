@@ -1,6 +1,7 @@
 //! Low-level IR's module.
 
 use std::fmt;
+use std::ops::Deref;
 use std::rc::Rc;
 
 use thiserror::Error;
@@ -43,6 +44,62 @@ pub struct Module {
 }
 
 impl Module {
+    /// Split a module.
+    ///
+    /// NOTE: This should be applied for virtual module.
+    pub fn split(self) -> (Module, Module) {
+        match self.inner.deref() {
+            ModuleInner::VirtualModule(virtual_module) => {
+                let (in1, in2) = match virtual_module.input_interface_typ() {
+                    InterfaceTyp::Struct(fields) => {
+                        assert_eq!(fields.len(), 2);
+                        let mut iter = fields.into_iter();
+                        (iter.next().unwrap(), iter.next().unwrap())
+                    }
+                    _ => todo!(),
+                };
+                let (out1, out2) = match virtual_module.output_interface_typ() {
+                    InterfaceTyp::Struct(fields) => {
+                        assert_eq!(fields.len(), 2);
+                        let mut iter = fields.into_iter();
+                        (iter.next().unwrap(), iter.next().unwrap())
+                    }
+                    _ => todo!(),
+                };
+                let vm1 = VirtualModule {
+                    registered_index: virtual_module.registered_index,
+                    module_name: virtual_module.module_name.clone(),
+                    input_prefix: virtual_module.input_prefix.clone(),
+                    output_prefix: virtual_module.output_prefix.clone(),
+                    input_interface_typ: virtual_module.input_interface_typ(),
+                    output_interface_typ: virtual_module.output_interface_typ(),
+                    input_endpoint_path: std::iter::once(EndpointNode::Field(in1.0, in1.1 .0))
+                        .chain(virtual_module.input_endpoint().inner)
+                        .collect(),
+                    output_endpoint_path: std::iter::once(EndpointNode::Field(out1.0, out1.1 .0))
+                        .chain(virtual_module.output_endpoint().inner)
+                        .collect(),
+                };
+                let vm2 = VirtualModule {
+                    registered_index: virtual_module.registered_index,
+                    module_name: virtual_module.module_name.clone(),
+                    input_prefix: virtual_module.input_prefix.clone(),
+                    output_prefix: virtual_module.output_prefix.clone(),
+                    input_interface_typ: virtual_module.input_interface_typ(),
+                    output_interface_typ: virtual_module.output_interface_typ(),
+                    input_endpoint_path: std::iter::once(EndpointNode::Field(in2.0, in2.1 .0))
+                        .chain(virtual_module.input_endpoint().inner)
+                        .collect(),
+                    output_endpoint_path: std::iter::once(EndpointNode::Field(out2.0, out2.1 .0))
+                        .chain(virtual_module.output_endpoint().inner)
+                        .collect(),
+                };
+                (vm1.into(), vm2.into())
+            }
+            _ => panic!("internal compiler error: split api can only be used for Virtual Modules"),
+        }
+    }
+
     /// Returns module name.
     pub fn get_module_name(&self) -> String {
         match &*self.inner {

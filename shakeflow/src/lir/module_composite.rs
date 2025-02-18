@@ -82,6 +82,27 @@ impl CompositeModule {
         }
     }
 
+    /// "register inline".
+    pub fn register_inline(&mut self, module: Module) -> Module {
+        assert!(
+            matches!(&*module.inner, ModuleInner::Composite(..)),
+            "Only `CompositeModule` can be registered to the context"
+        );
+        let registered_index = self.registered_modules.len();
+        self.registered_modules.push(module.clone());
+        let virtual_module = VirtualModule {
+            module_name: module.get_module_name(),
+            registered_index,
+            input_prefix: module.inner.input_prefix().unwrap_or_else(|| "in".to_string()),
+            output_prefix: module.inner.output_prefix().unwrap_or_else(|| "out".to_string()),
+            input_interface_typ: module.inner.input_interface_typ(),
+            input_endpoint_path: EndpointPath::default(),
+            output_interface_typ: module.inner.output_interface_typ(),
+            output_endpoint_path: EndpointPath::default(),
+        };
+        virtual_module.into()
+    }
+
     /// Returns input interface type of the module.
     pub fn input_interface_typ(&self) -> InterfaceTyp {
         match self.module_typ {

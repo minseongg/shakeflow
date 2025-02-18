@@ -1,6 +1,5 @@
 //! Module.
 
-use std::iter;
 use std::marker::PhantomData;
 use std::ops::*;
 
@@ -27,56 +26,8 @@ impl<I1: Interface, I2: Interface, O1: Interface, O2: Interface> Module<(I1, I2)
     ///
     /// TODO: generalized to N-M modules?
     pub fn split(self) -> (Module<I1, O1>, Module<I2, O2>) {
-        match self.inner.inner.deref() {
-            lir::ModuleInner::VirtualModule(virtual_module) => {
-                let (in1, in2) = match virtual_module.input_interface_typ() {
-                    lir::InterfaceTyp::Struct(fields) => {
-                        assert_eq!(fields.len(), 2);
-                        let mut iter = fields.into_iter();
-                        (iter.next().unwrap(), iter.next().unwrap())
-                    }
-                    _ => todo!(),
-                };
-                let (out1, out2) = match virtual_module.output_interface_typ() {
-                    lir::InterfaceTyp::Struct(fields) => {
-                        assert_eq!(fields.len(), 2);
-                        let mut iter = fields.into_iter();
-                        (iter.next().unwrap(), iter.next().unwrap())
-                    }
-                    _ => todo!(),
-                };
-                let vm1 = lir::VirtualModule {
-                    registered_index: virtual_module.registered_index,
-                    module_name: virtual_module.module_name.clone(),
-                    input_prefix: virtual_module.input_prefix.clone(),
-                    output_prefix: virtual_module.output_prefix.clone(),
-                    input_interface_typ: virtual_module.input_interface_typ(),
-                    output_interface_typ: virtual_module.output_interface_typ(),
-                    input_endpoint_path: iter::once(lir::EndpointNode::Field(in1.0, in1.1 .0))
-                        .chain(virtual_module.input_endpoint().inner)
-                        .collect(),
-                    output_endpoint_path: iter::once(lir::EndpointNode::Field(out1.0, out1.1 .0))
-                        .chain(virtual_module.output_endpoint().inner)
-                        .collect(),
-                };
-                let vm2 = lir::VirtualModule {
-                    registered_index: virtual_module.registered_index,
-                    module_name: virtual_module.module_name.clone(),
-                    input_prefix: virtual_module.input_prefix.clone(),
-                    output_prefix: virtual_module.output_prefix.clone(),
-                    input_interface_typ: virtual_module.input_interface_typ(),
-                    output_interface_typ: virtual_module.output_interface_typ(),
-                    input_endpoint_path: iter::once(lir::EndpointNode::Field(in2.0, in2.1 .0))
-                        .chain(virtual_module.input_endpoint().inner)
-                        .collect(),
-                    output_endpoint_path: iter::once(lir::EndpointNode::Field(out2.0, out2.1 .0))
-                        .chain(virtual_module.output_endpoint().inner)
-                        .collect(),
-                };
-                (Module::new(vm1.into()), Module::new(vm2.into()))
-            }
-            _ => panic!("internal compiler error: split api can only be used for Virtual Modules"),
-        }
+        let (vm1, vm2) = self.inner.split();
+        (Module::new(vm1), Module::new(vm2))
     }
 }
 

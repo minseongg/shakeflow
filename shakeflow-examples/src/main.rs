@@ -39,6 +39,7 @@ fn main() -> Result<(), PackageError> {
     package.add(virtual_module::read_write_test_m());
     package.add(virtual_module::read_write_array_test_m());
     package.add(virtual_module::read_write_inline_test_m());
+    package.add(virtual_module::spsc_test_m());
     package.add(::shakeflow_std::cuckoo_table::m());
     package.gen_vir(Path::new("./build"))
 }
