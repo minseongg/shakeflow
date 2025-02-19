@@ -1,6 +1,7 @@
 //! Interface.
 
 use std::collections::HashMap;
+use std::ops::*;
 
 use linked_hash_map::LinkedHashMap;
 
@@ -242,6 +243,54 @@ impl Interface {
                     })
                 })
                 .collect(),
+        }
+    }
+}
+
+impl Index<EndpointNode> for Interface {
+    type Output = Interface;
+
+    fn index(&self, index: EndpointNode) -> &Self::Output {
+        match (index, self) {
+            (EndpointNode::Index(i), Interface::Array(ifs)) => {
+                assert!(i < ifs.len());
+                &ifs[i]
+            }
+            (EndpointNode::ExpansiveIndex(i), Interface::ExpansiveArray(ifs)) => {
+                assert!(i < ifs.len());
+                &ifs[i]
+            }
+            (EndpointNode::Field(field, _), Interface::Struct(map)) => {
+                if let Some((_, i)) = map.get(&field) {
+                    i
+                } else {
+                    panic!("{} does not exist in the struct", field)
+                }
+            }
+            _ => panic!("path and interface doesn't match"),
+        }
+    }
+}
+
+impl IndexMut<EndpointNode> for Interface {
+    fn index_mut(&mut self, index: EndpointNode) -> &mut Self::Output {
+        match (index, self) {
+            (EndpointNode::Index(i), Interface::Array(ifs)) => {
+                assert!(i < ifs.len());
+                &mut ifs[i]
+            }
+            (EndpointNode::ExpansiveIndex(i), Interface::ExpansiveArray(ifs)) => {
+                assert!(i < ifs.len());
+                &mut ifs[i]
+            }
+            (EndpointNode::Field(field, _), Interface::Struct(map)) => {
+                if let Some((_, i)) = map.get_mut(&field) {
+                    i
+                } else {
+                    panic!("{} does not exist in the struct", field)
+                }
+            }
+            _ => panic!("path and interface doesn't match"),
         }
     }
 }
