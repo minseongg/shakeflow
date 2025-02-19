@@ -295,6 +295,34 @@ impl IndexMut<EndpointNode> for Interface {
     }
 }
 
+impl Index<String> for Interface {
+    type Output = Interface;
+
+    fn index(&self, index: String) -> &Self::Output {
+        &self[EndpointNode::Field(index.to_string(), None)]
+    }
+}
+
+impl IndexMut<String> for Interface {
+    fn index_mut(&mut self, index: String) -> &mut Self::Output {
+        &mut self[EndpointNode::Field(index.to_string(), None)]
+    }
+}
+
+impl Index<&str> for Interface {
+    type Output = Interface;
+
+    fn index(&self, index: &str) -> &Self::Output {
+        &self[EndpointNode::Field(index.to_string(), None)]
+    }
+}
+
+impl IndexMut<&str> for Interface {
+    fn index_mut(&mut self, index: &str) -> &mut Self::Output {
+        &mut self[EndpointNode::Field(index.to_string(), None)]
+    }
+}
+
 impl FromIterator<(Interface, EndpointPath)> for Interface {
     /// Constructs interface from primitive interfaces.
     fn from_iter<I: IntoIterator<Item = (Interface, EndpointPath)>>(iter: I) -> Self {
