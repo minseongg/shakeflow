@@ -60,11 +60,13 @@ pub fn spsc_test_m() -> Module<VrChannel<Bits<U<8>>>, VrChannel<Bits<U<8>>>> {
     composite::<VrChannel<Bits<U<8>>>, VrChannel<Bits<U<8>>>, _>("spsc_test", Some("i"), Some("o"), |i, k| {
         let (sender, receiver) = spsc(k);
 
+        // Receive.
+        let ret = ().comb_inline(k, receiver);
+
         // Send.
         i.comb_inline(k, sender);
 
-        // Receive.
-        ().comb_inline(k, receiver)
+        ret
     })
     .build()
 }

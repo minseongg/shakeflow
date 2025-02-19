@@ -10,6 +10,7 @@ mod int_adder;
 mod pulse_merge;
 mod set;
 mod split;
+mod spsc_lir;
 mod tree_fold;
 mod virtual_module;
 
@@ -19,8 +20,10 @@ use shakeflow::{Package, PackageError};
 
 fn main() -> Result<(), PackageError> {
     {
-        use shakeflow::Signal;
+        use shakeflow::*;
+        use shakeflow_std::VrChannel;
         fifo_lir::fifo(<u16>::port_decls(), 8);
+        spsc_lir::channel(VrChannel::<u16>::interface_typ());
     };
 
     let mut package = Package::default();
