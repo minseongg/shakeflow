@@ -23,8 +23,9 @@ pub enum InterfaceTyp {
     /// Expansive array of interface types
     ExpansiveArray(Box<InterfaceTyp>, usize),
 
-    /// Struct of interface types. The first `String` of value indicates separator of the field.
-    Struct(LinkedHashMap<String, (Option<String>, InterfaceTyp)>),
+    /// Struct of interface types.
+    // TODO: Add `sep` if needed.
+    Struct(LinkedHashMap<String, InterfaceTyp>),
 }
 
 impl InterfaceTyp {
@@ -40,7 +41,7 @@ impl InterfaceTyp {
             InterfaceTyp::Struct(inner) => PortDecls::Struct(
                 inner
                     .into_iter()
-                    .map(|(name, (_sep, typ))| (if name.is_empty() { None } else { Some(name.clone()) }, typ.fwd()))
+                    .map(|(name, typ)| (if name.is_empty() { None } else { Some(name.clone()) }, typ.fwd()))
                     .collect(),
             ),
         }
@@ -58,7 +59,7 @@ impl InterfaceTyp {
             InterfaceTyp::Struct(inner) => PortDecls::Struct(
                 inner
                     .into_iter()
-                    .map(|(name, (_sep, typ))| (if name.is_empty() { None } else { Some(name.clone()) }, typ.bwd()))
+                    .map(|(name, typ)| (if name.is_empty() { None } else { Some(name.clone()) }, typ.bwd()))
                     .collect(),
             ),
         }
@@ -96,9 +97,9 @@ impl InterfaceTyp {
                 .collect(),
             InterfaceTyp::Struct(inner) => inner
                 .into_iter()
-                .flat_map(|(name, (sep, interface_typ))| {
+                .flat_map(|(name, interface_typ)| {
                     interface_typ.into_primitives().into_iter().map(|(primitive_typ, mut path)| {
-                        path.inner.push_front(EndpointNode::Field(name.clone(), sep.clone()));
+                        path.inner.push_front(EndpointNode::Field(name.clone()));
                         (primitive_typ, path)
                     })
                 })
@@ -118,8 +119,8 @@ impl InterfaceTyp {
                     assert!(i < *size);
                     typ.get_subinterface(path)
                 }
-                (EndpointNode::Field(field, _), InterfaceTyp::Struct(map)) => {
-                    if let Some((_, typ)) = map.get(&field) {
+                (EndpointNode::Field(field), InterfaceTyp::Struct(map)) => {
+                    if let Some(typ) = map.get(&field) {
                         typ.get_subinterface(path)
                     } else {
                         panic!("{} does not exist in the struct", field)
@@ -150,9 +151,9 @@ pub enum Interface {
     /// Expansive array of interfaces
     ExpansiveArray(Vec<Interface>),
 
-    /// Struct of interfaces. The first `Option<String>` of value indicates separator of the field.
-    /// If it is `None`, then separator is '_'.
-    Struct(LinkedHashMap<String, (Option<String>, Interface)>),
+    /// Struct of interfaces.
+    // TODO: Add `sep` if needed.
+    Struct(LinkedHashMap<String, Interface>),
 }
 
 impl Interface {
@@ -204,9 +205,9 @@ impl Interface {
             Interface::Channel(channel) => InterfaceTyp::Channel(channel.typ.clone()),
             Interface::Array(inner) => InterfaceTyp::Array(Box::new(inner[0].typ()), inner.len()),
             Interface::ExpansiveArray(inner) => InterfaceTyp::ExpansiveArray(Box::new(inner[0].typ()), inner.len()),
-            Interface::Struct(inner) => InterfaceTyp::Struct(
-                inner.iter().map(|(name, (sep, interface))| (name.clone(), (sep.clone(), interface.typ()))).collect(),
-            ),
+            Interface::Struct(inner) => {
+                InterfaceTyp::Struct(inner.iter().map(|(name, interface)| (name.clone(), interface.typ())).collect())
+            }
         }
     }
 
@@ -236,9 +237,9 @@ impl Interface {
                 .collect(),
             Interface::Struct(inner) => inner
                 .iter()
-                .flat_map(|(name, (sep, interface))| {
+                .flat_map(|(name, interface)| {
                     interface.into_primitives().into_iter().map(|(primitive, mut path)| {
-                        path.inner.push_front(EndpointNode::Field(name.clone(), sep.clone()));
+                        path.inner.push_front(EndpointNode::Field(name.clone()));
                         (primitive, path)
                     })
                 })
@@ -260,8 +261,8 @@ impl Index<EndpointNode> for Interface {
                 assert!(i < ifs.len());
                 &ifs[i]
             }
-            (EndpointNode::Field(field, _), Interface::Struct(map)) => {
-                if let Some((_, i)) = map.get(&field) {
+            (EndpointNode::Field(field), Interface::Struct(map)) => {
+                if let Some(i) = map.get(&field) {
                     i
                 } else {
                     panic!("{} does not exist in the struct", field)
@@ -283,8 +284,8 @@ impl IndexMut<EndpointNode> for Interface {
                 assert!(i < ifs.len());
                 &mut ifs[i]
             }
-            (EndpointNode::Field(field, _), Interface::Struct(map)) => {
-                if let Some((_, i)) = map.get_mut(&field) {
+            (EndpointNode::Field(field), Interface::Struct(map)) => {
+                if let Some(i) = map.get_mut(&field) {
                     i
                 } else {
                     panic!("{} does not exist in the struct", field)
@@ -299,13 +300,13 @@ impl Index<String> for Interface {
     type Output = Interface;
 
     fn index(&self, index: String) -> &Self::Output {
-        &self[EndpointNode::Field(index.to_string(), None)]
+        &self[EndpointNode::Field(index.to_string())]
     }
 }
 
 impl IndexMut<String> for Interface {
     fn index_mut(&mut self, index: String) -> &mut Self::Output {
-        &mut self[EndpointNode::Field(index.to_string(), None)]
+        &mut self[EndpointNode::Field(index.to_string())]
     }
 }
 
@@ -313,13 +314,13 @@ impl Index<&str> for Interface {
     type Output = Interface;
 
     fn index(&self, index: &str) -> &Self::Output {
-        &self[EndpointNode::Field(index.to_string(), None)]
+        &self[EndpointNode::Field(index.to_string())]
     }
 }
 
 impl IndexMut<&str> for Interface {
     fn index_mut(&mut self, index: &str) -> &mut Self::Output {
-        &mut self[EndpointNode::Field(index.to_string(), None)]
+        &mut self[EndpointNode::Field(index.to_string())]
     }
 }
 
@@ -374,23 +375,20 @@ impl FromIterator<(Interface, EndpointPath)> for Interface {
                     )
                 }
                 EndpointNode::Field(..) => {
-                    let mut inner = LinkedHashMap::<String, (Option<String>, Vec<(Interface, EndpointPath)>)>::new();
+                    let mut inner = LinkedHashMap::<String, Vec<(Interface, EndpointPath)>>::new();
                     for (interface, mut path) in primitives {
                         let node = path.inner.pop_front().unwrap();
                         match node {
-                            EndpointNode::Field(name, sep) => {
-                                inner.entry(name.clone()).or_insert((sep, Vec::new()));
+                            EndpointNode::Field(name) => {
+                                inner.entry(name.clone()).or_default();
                                 let primitives = inner.get_mut(&name).unwrap();
-                                primitives.1.push((interface, path));
+                                primitives.push((interface, path));
                             }
                             _ => panic!("internal compiler error"),
                         }
                     }
                     Interface::Struct(
-                        inner
-                            .into_iter()
-                            .map(|(name, (sep, primitives))| (name, (sep, primitives.into_iter().collect())))
-                            .collect(),
+                        inner.into_iter().map(|(name, primitives)| (name, primitives.into_iter().collect())).collect(),
                     )
                 }
             }

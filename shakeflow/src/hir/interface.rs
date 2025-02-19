@@ -284,14 +284,14 @@ macro_rules! impl_interface_tuple {
 
             fn interface_typ() -> lir::InterfaceTyp {
                 let mut inner = LinkedHashMap::new();
-                inner.insert("0".to_string(), (None, $a::interface_typ()));
+                inner.insert("0".to_string(), $a::interface_typ());
                 lir::InterfaceTyp::Struct(inner)
             }
 
             fn try_from_inner(interface: lir::Interface) -> Result<Self, InterfaceError> {
                 match interface {
                     lir::Interface::Struct(mut inner) => {
-                        let b = inner.remove("0").unwrap().1;
+                        let b = inner.remove("0").unwrap();
                         assert!(inner.is_empty(), "internal compiler error");
                         Ok(($a::try_from_inner(b)?,))
                     }
@@ -301,7 +301,7 @@ macro_rules! impl_interface_tuple {
 
             fn try_into_inner(self) -> Result<lir::Interface, InterfaceError> {
                 let mut inner = LinkedHashMap::new();
-                inner.insert("0".to_string(), (None, self.0.try_into_inner()?));
+                inner.insert("0".to_string(), self.0.try_into_inner()?);
                 Ok(lir::Interface::Struct(inner))
             }
         }
@@ -316,7 +316,7 @@ macro_rules! impl_interface_tuple {
                     lir::InterfaceTyp::Struct(mut inner) => {
                         inner.insert(
                             (Self::arity() - 1).to_string(),
-                            (None, <<Self as SplitLast>::Right as Interface>::interface_typ()),
+                            <<Self as SplitLast>::Right as Interface>::interface_typ(),
                         );
                         lir::InterfaceTyp::Struct(inner)
                     }
@@ -327,7 +327,7 @@ macro_rules! impl_interface_tuple {
             fn try_from_inner(interface: lir::Interface) -> Result<Self, InterfaceError> {
                 match interface {
                     lir::Interface::Struct(mut inner) => {
-                        let right = inner.remove(&(Self::arity() - 1).to_string()).unwrap().1;
+                        let right = inner.remove(&(Self::arity() - 1).to_string()).unwrap();
 
                         Ok(
                             <<Self as SplitLast>::Left as Interface>::try_from_inner(lir::Interface::Struct(inner))?
@@ -343,7 +343,7 @@ macro_rules! impl_interface_tuple {
 
                 match left.try_into_inner()? {
                     lir::Interface::Struct(mut inner) => {
-                        inner.insert((Self::arity() - 1).to_string(), (None, right.try_into_inner()?));
+                        inner.insert((Self::arity() - 1).to_string(), right.try_into_inner()?);
                         Ok(lir::Interface::Struct(inner))
                     }
                     _ => panic!("internal compiler error"),

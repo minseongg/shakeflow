@@ -50,10 +50,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let sep = get_member_sep(&f.attrs);
 
         match sep {
-            None => quote! { _inner.insert(#symbol.to_string(), (None, <#ty>::interface_typ())) },
-            Some(sep) => {
-                quote! { _inner.insert(#symbol.to_string(), (Some(#sep.to_string()), <#ty>::interface_typ())) }
-            }
+            None => quote! { _inner.insert(#symbol.to_string(), <#ty>::interface_typ()) },
+            Some(_) => todo!("Handle when `sep` exist"),
         }
     });
 
@@ -62,7 +60,7 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let name = f.ident.as_ref().unwrap();
         let ty = &f.ty;
         let symbol = get_member_symbol(&f.attrs, name).unwrap();
-        quote! { let #name = <#ty>::try_from_inner(_inner.remove(#symbol).unwrap().1)? }
+        quote! { let #name = <#ty>::try_from_inner(_inner.remove(#symbol).unwrap())? }
     });
 
     // fields for `try_into_inner`.
@@ -72,10 +70,8 @@ pub fn derive(input: TokenStream) -> TokenStream {
         let sep = get_member_sep(&f.attrs);
 
         match sep {
-            None => quote! { _inner.insert(#symbol.to_string(), (None, self.#name.try_into_inner()?)) },
-            Some(sep) => {
-                quote! { _inner.insert(#symbol.to_string(), (Some(#sep.to_string()), self.#name.try_into_inner()?)) }
-            }
+            None => quote! { _inner.insert(#symbol.to_string(), self.#name.try_into_inner()?) },
+            Some(_) => todo!("Handle when `sep` exist"),
         }
     });
 

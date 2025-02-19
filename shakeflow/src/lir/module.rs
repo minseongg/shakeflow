@@ -73,10 +73,10 @@ impl Module {
                     output_prefix: virtual_module.output_prefix.clone(),
                     input_interface_typ: virtual_module.input_interface_typ(),
                     output_interface_typ: virtual_module.output_interface_typ(),
-                    input_endpoint_path: std::iter::once(EndpointNode::Field(in1.0, in1.1 .0))
+                    input_endpoint_path: std::iter::once(EndpointNode::Field(in1.0))
                         .chain(virtual_module.input_endpoint().inner)
                         .collect(),
-                    output_endpoint_path: std::iter::once(EndpointNode::Field(out1.0, out1.1 .0))
+                    output_endpoint_path: std::iter::once(EndpointNode::Field(out1.0))
                         .chain(virtual_module.output_endpoint().inner)
                         .collect(),
                 };
@@ -87,10 +87,10 @@ impl Module {
                     output_prefix: virtual_module.output_prefix.clone(),
                     input_interface_typ: virtual_module.input_interface_typ(),
                     output_interface_typ: virtual_module.output_interface_typ(),
-                    input_endpoint_path: std::iter::once(EndpointNode::Field(in2.0, in2.1 .0))
+                    input_endpoint_path: std::iter::once(EndpointNode::Field(in2.0))
                         .chain(virtual_module.input_endpoint().inner)
                         .collect(),
-                    output_endpoint_path: std::iter::once(EndpointNode::Field(out2.0, out2.1 .0))
+                    output_endpoint_path: std::iter::once(EndpointNode::Field(out2.0))
                         .chain(virtual_module.output_endpoint().inner)
                         .collect(),
                 };

@@ -216,9 +216,9 @@ pub enum EndpointNode {
     /// Element of expansive array.
     ExpansiveIndex(usize),
 
-    /// Field of struct. The first `String` indicates name of the field, and the second `Option<String>`
-    /// indicates separator. If it is `None`, then separator is '_'.
-    Field(String, Option<String>),
+    /// Field of struct.
+    // TODO: Add `sep` if needed.
+    Field(String),
 }
 
 /// Endpoint's path.

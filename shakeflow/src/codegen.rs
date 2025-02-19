@@ -327,13 +327,11 @@ impl Display for Direction {
 }
 
 /// Accessor to the element in the interface.
+// TODO: Add `sep` if needed.
 #[derive(Default, Debug, Clone)]
 struct Accessor {
     /// Prefix.
     prefix: Option<String>,
-
-    /// Separator.
-    sep: Option<String>,
 
     /// Index and total number of elements.
     index: Option<(usize, usize)>,
@@ -509,7 +507,6 @@ fn gen_ports(interface_typ: &lir::InterfaceTyp) -> Vec<(Port, Accessor)> {
                         }
                         None => {
                             accessor.prefix = Some(i.to_string());
-                            accessor.sep = None;
                         }
                     }
                     (port, accessor)
@@ -518,16 +515,14 @@ fn gen_ports(interface_typ: &lir::InterfaceTyp) -> Vec<(Port, Accessor)> {
             .collect(),
         lir::InterfaceTyp::Struct(inner) => inner
             .into_iter()
-            .flat_map(|(name, (sep, interface_typ))| {
+            .flat_map(|(name, interface_typ)| {
                 gen_ports(interface_typ).into_iter().map(|(port, mut accessor)| {
                     match accessor.prefix {
                         Some(prefix) => {
-                            let sep = sep.clone().unwrap_or_else(|| "_".to_string());
-                            accessor.prefix = join_options(&sep, [Some(name.clone()), Some(prefix)]);
+                            accessor.prefix = join_options("_", [Some(name.clone()), Some(prefix)]);
                         }
                         None => {
                             accessor.prefix = Some(name.clone());
-                            accessor.sep = sep.clone();
                         }
                     }
                     (port, accessor)
@@ -574,28 +569,24 @@ pub(super) fn gen_virtual_wirings(
 
         for (name, shape) in channel_typ.fwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = ingress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = ingress_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = registered_ingress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = registered_ingress_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&to_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
                 to_range,
-                join_options(&from_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
                 from_range,
             ));
         }
 
         for (name, shape) in channel_typ.bwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = registered_ingress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = registered_ingress_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = ingress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = ingress_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&from_sep, [rvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name.clone()]).unwrap(),
                 from_range,
-                join_options(&to_sep, [lvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name]).unwrap(),
                 to_range,
             ));
         }
@@ -623,28 +614,24 @@ pub(super) fn gen_virtual_wirings(
 
         for (name, shape) in channel_typ.fwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = registered_egress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = registered_egress_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = egress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = egress_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&to_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
                 to_range,
-                join_options(&from_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
                 from_range,
             ));
         }
 
         for (name, shape) in channel_typ.bwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = egress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = egress_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = registered_egress_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = registered_egress_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&from_sep, [rvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name.clone()]).unwrap(),
                 from_range,
-                join_options(&to_sep, [lvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name]).unwrap(),
                 to_range,
             ));
         }
@@ -671,47 +658,45 @@ pub(super) fn gen_connections(
     }
 
     for (port, accessor) in gen_ports(&module.input_interface_typ()) {
-        let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-        let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+        let path_prefix = accessor.prefix;
         let lvalue_prefix = join_options("_", [module.input_prefix.clone(), path_prefix.clone()]);
         let rvalue_prefix = join_options("_", [ctx.get_prefix(), Some("in".to_string()), path_prefix]);
 
         for (name, _) in port.channel_typ.fwd.iter() {
             connections.push((
                 Direction::Input,
-                join_options(&path_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
-                join_options(&path_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
             ));
         }
 
         for (name, _) in port.channel_typ.bwd.iter() {
             connections.push((
                 Direction::Output,
-                join_options(&path_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
-                join_options(&path_sep, [rvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name.clone()]).unwrap(),
             ));
         }
     }
 
     for (port, accessor) in gen_ports(&module.output_interface_typ()) {
-        let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-        let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+        let path_prefix = accessor.prefix;
         let lvalue_prefix = join_options("_", [module.output_prefix.clone(), path_prefix.clone()]);
         let rvalue_prefix = join_options("_", [ctx.get_prefix(), Some("out".to_string()), path_prefix]);
 
         for (name, _) in port.channel_typ.fwd.iter() {
             connections.push((
                 Direction::Output,
-                join_options(&path_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
-                join_options(&path_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
             ));
         }
 
         for (name, _) in port.channel_typ.bwd.iter() {
             connections.push((
                 Direction::Input,
-                join_options(&path_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
-                join_options(&path_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
             ));
         }
     }
@@ -731,8 +716,7 @@ pub(super) fn gen_port_decls(module: &lir::Module) -> Result<Vec<(Direction, usi
 
     // Port declarations for input interface
     for (port, accessor) in gen_ports(&module.inner.input_interface_typ()) {
-        let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-        let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+        let path_prefix = accessor.prefix;
         let input_prefix = join_options("_", [module.inner.input_prefix(), path_prefix]);
 
         for (name, shape) in port.channel_typ.fwd.iter() {
@@ -740,7 +724,7 @@ pub(super) fn gen_port_decls(module: &lir::Module) -> Result<Vec<(Direction, usi
             port_decls.push((
                 Direction::Input,
                 shape.width() * port.size,
-                join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                join_options("_", [input_prefix.clone(), name]).unwrap(),
             ));
         }
 
@@ -749,15 +733,14 @@ pub(super) fn gen_port_decls(module: &lir::Module) -> Result<Vec<(Direction, usi
             port_decls.push((
                 Direction::Output,
                 shape.width() * port.size,
-                join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                join_options("_", [input_prefix.clone(), name]).unwrap(),
             ));
         }
     }
 
     // Port declarations for output interface
     for (port, accessor) in gen_ports(&module.inner.output_interface_typ()) {
-        let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-        let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+        let path_prefix = accessor.prefix;
         let output_prefix = join_options("_", [module.inner.output_prefix(), path_prefix]);
 
         for (name, shape) in port.channel_typ.fwd.iter() {
@@ -765,7 +748,7 @@ pub(super) fn gen_port_decls(module: &lir::Module) -> Result<Vec<(Direction, usi
             port_decls.push((
                 Direction::Output,
                 shape.width() * port.size,
-                join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                join_options("_", [output_prefix.clone(), name]).unwrap(),
             ));
         }
 
@@ -774,7 +757,7 @@ pub(super) fn gen_port_decls(module: &lir::Module) -> Result<Vec<(Direction, usi
             port_decls.push((
                 Direction::Input,
                 shape.width() * port.size,
-                join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                join_options("_", [output_prefix.clone(), name]).unwrap(),
             ));
         }
     }
@@ -798,8 +781,7 @@ pub(super) fn gen_submodule_wires(
     for (index, registered_module) in module.registered_modules.iter().enumerate() {
         let comp_name = registered_module.get_module_name();
         for (port, accessor) in gen_ports(&registered_module.inner.input_interface_typ()) {
-            let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-            let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+            let path_prefix = accessor.prefix;
             let input_prefix = join_options("_", [
                 ctx.get_prefix(),
                 Some(format!(
@@ -815,13 +797,12 @@ pub(super) fn gen_submodule_wires(
                 ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
             {
                 submodule_wires
-                    .push((join_options(&path_sep, [input_prefix.clone(), name]).unwrap(), shape.multiple(port.size)));
+                    .push((join_options("_", [input_prefix.clone(), name]).unwrap(), shape.multiple(port.size)));
             }
         }
 
         for (port, accessor) in gen_ports(&registered_module.inner.output_interface_typ()) {
-            let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-            let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+            let path_prefix = accessor.prefix;
             let output_prefix = join_options("_", [
                 ctx.get_prefix(),
                 Some(format!(
@@ -837,7 +818,7 @@ pub(super) fn gen_submodule_wires(
                 ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
             {
                 submodule_wires
-                    .push((join_options(&path_sep, [output_prefix.clone(), name]).unwrap(), shape.multiple(port.size)));
+                    .push((join_options("_", [output_prefix.clone(), name]).unwrap(), shape.multiple(port.size)));
             }
         }
     }
@@ -849,8 +830,7 @@ pub(super) fn gen_submodule_wires(
             lir::ModuleInner::Composite(_, module) => {
                 // Add input wires
                 for (port, accessor) in gen_ports(&module.input_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let input_prefix = join_options("_", [
                         ctx.get_prefix(),
                         Some(format!("{}_{}", comp_name, index)),
@@ -861,7 +841,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                            join_options("_", [input_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -869,8 +849,7 @@ pub(super) fn gen_submodule_wires(
 
                 // Add output wires
                 for (port, accessor) in gen_ports(&module.output_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let output_prefix = join_options("_", [
                         ctx.get_prefix(),
                         Some(format!("{}_{}", comp_name, index)),
@@ -881,7 +860,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                            join_options("_", [output_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -890,8 +869,7 @@ pub(super) fn gen_submodule_wires(
             lir::ModuleInner::Fsm(module) => {
                 // Add input wires
                 for (port, accessor) in gen_ports(&module.input_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let input_prefix =
                         join_options("_", [ctx.get_prefix(), Some(format!("{}_{}_in", comp_name, index)), path_prefix]);
 
@@ -899,7 +877,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                            join_options("_", [input_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -907,8 +885,7 @@ pub(super) fn gen_submodule_wires(
 
                 // Add output wires
                 for (port, accessor) in gen_ports(&module.output_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let output_prefix = join_options("_", [
                         ctx.get_prefix(),
                         Some(format!("{}_{}_out", comp_name, index)),
@@ -919,7 +896,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                            join_options("_", [output_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -928,8 +905,7 @@ pub(super) fn gen_submodule_wires(
             lir::ModuleInner::ModuleInst(module) => {
                 // Add input wires
                 for (port, accessor) in gen_ports(&module.input_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let input_prefix =
                         join_options("_", [ctx.get_prefix(), Some(format!("{}_{}_in", comp_name, index)), path_prefix]);
 
@@ -937,7 +913,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                            join_options("_", [input_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -945,8 +921,7 @@ pub(super) fn gen_submodule_wires(
 
                 // Add output wires
                 for (port, accessor) in gen_ports(&module.output_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let output_prefix = join_options("_", [
                         ctx.get_prefix(),
                         Some(format!("{}_{}_out", comp_name, index)),
@@ -957,7 +932,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                            join_options("_", [output_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -966,8 +941,7 @@ pub(super) fn gen_submodule_wires(
             lir::ModuleInner::VirtualModule(module) => {
                 // Add input wires
                 for (port, accessor) in gen_ports(&module.input_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let input_prefix =
                         join_options("_", [ctx.get_prefix(), Some(format!("{}_{}_in", comp_name, index)), path_prefix]);
 
@@ -975,7 +949,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [input_prefix.clone(), name]).unwrap(),
+                            join_options("_", [input_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -983,8 +957,7 @@ pub(super) fn gen_submodule_wires(
 
                 // Add output wires
                 for (port, accessor) in gen_ports(&module.output_interface_typ()) {
-                    let (path_prefix, path_sep) = (accessor.prefix, accessor.sep);
-                    let path_sep = path_sep.unwrap_or_else(|| "_".to_string());
+                    let path_prefix = accessor.prefix;
                     let output_prefix = join_options("_", [
                         ctx.get_prefix(),
                         Some(format!("{}_{}_out", comp_name, index)),
@@ -995,7 +968,7 @@ pub(super) fn gen_submodule_wires(
                         ::std::iter::empty().chain(port.channel_typ.fwd.iter()).chain(port.channel_typ.bwd.iter())
                     {
                         submodule_wires.push((
-                            join_options(&path_sep, [output_prefix.clone(), name]).unwrap(),
+                            join_options("_", [output_prefix.clone(), name]).unwrap(),
                             shape.multiple(port.size),
                         ));
                     }
@@ -1029,19 +1002,15 @@ fn gen_channel_accessor(interface_typ: &lir::InterfaceTyp, mut path: lir::Endpoi
             accessor.prefix = join_options("_", [Some(i.to_string()), accessor.prefix]);
             accessor
         }
-        (lir::EndpointNode::Field(name, _), lir::InterfaceTyp::Struct(inner)) => {
-            let (sep, interface_typ_field) = inner.get(name).unwrap();
+        (lir::EndpointNode::Field(name), lir::InterfaceTyp::Struct(inner)) => {
+            let interface_typ_field = inner.get(name).unwrap();
             let mut accessor = gen_channel_accessor(interface_typ_field, path);
             match accessor.prefix {
                 Some(prefix) => {
-                    accessor.prefix = join_options(&sep.clone().unwrap_or_else(|| "_".to_string()), [
-                        Some(name.clone()),
-                        Some(prefix),
-                    ]);
+                    accessor.prefix = join_options("_", [Some(name.clone()), Some(prefix)]);
                 }
                 None => {
                     accessor.prefix = Some(name.clone());
-                    accessor.sep = sep.clone();
                 }
             }
             accessor
@@ -1155,28 +1124,24 @@ pub(super) fn gen_wiring(
 
         for (name, shape) in channel_typ.fwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let to_sep = to_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = to_accessor.index.map(|(index, _)| (index, shape.width()));
-            let from_sep = from_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = from_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&to_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
                 to_range,
-                join_options(&from_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
                 from_range,
             ));
         }
 
         for (name, shape) in channel_typ.bwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = from_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_range = from_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = to_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_range = to_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&from_sep, [rvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name.clone()]).unwrap(),
                 from_range,
-                join_options(&to_sep, [lvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name]).unwrap(),
                 to_range,
             ));
         }
@@ -1295,7 +1260,6 @@ pub(super) fn gen_wiring_array(
 
         for (name, shape) in channel_typ.fwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let to_sep = to_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_generate = if *to_generate {
                 match to_accessor.index {
                     Some((_, total)) => Some(shape.width() * total),
@@ -1305,7 +1269,6 @@ pub(super) fn gen_wiring_array(
                 None
             };
             let to_range = to_accessor.index.map(|(index, _)| (index, shape.width()));
-            let from_sep = from_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_generate = if *from_generate {
                 match from_accessor.index {
                     Some((_, total)) => Some(shape.width() * total),
@@ -1316,10 +1279,10 @@ pub(super) fn gen_wiring_array(
             };
             let from_range = from_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&to_sep, [lvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name.clone()]).unwrap(),
                 to_generate,
                 to_range,
-                join_options(&from_sep, [rvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name]).unwrap(),
                 from_generate,
                 from_range,
             ));
@@ -1327,7 +1290,6 @@ pub(super) fn gen_wiring_array(
 
         for (name, shape) in channel_typ.bwd.iter() {
             assert_eq!(shape.dim(), 1);
-            let from_sep = from_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let from_generate = if *from_generate {
                 match from_accessor.index {
                     Some((_, total)) => Some(shape.width() * total),
@@ -1337,7 +1299,6 @@ pub(super) fn gen_wiring_array(
                 None
             };
             let from_range = from_accessor.index.map(|(index, _)| (index, shape.width()));
-            let to_sep = to_accessor.sep.clone().unwrap_or_else(|| "_".to_string());
             let to_generate = if *to_generate {
                 match to_accessor.index {
                     Some((_, total)) => Some(shape.width() * total),
@@ -1348,10 +1309,10 @@ pub(super) fn gen_wiring_array(
             };
             let to_range = to_accessor.index.map(|(index, _)| (index, shape.width()));
             conts.push((
-                join_options(&from_sep, [rvalue_prefix.clone(), name.clone()]).unwrap(),
+                join_options("_", [rvalue_prefix.clone(), name.clone()]).unwrap(),
                 from_generate,
                 from_range,
-                join_options(&to_sep, [lvalue_prefix.clone(), name]).unwrap(),
+                join_options("_", [lvalue_prefix.clone(), name]).unwrap(),
                 to_generate,
                 to_range,
             ));

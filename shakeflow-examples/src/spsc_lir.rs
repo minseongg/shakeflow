@@ -4,9 +4,7 @@ use shakeflow::*;
 
 fn spsc(k: &mut lir::CompositeModule, interface_typ: lir::InterfaceTyp) -> (lir::Module, lir::Module) {
     let interface_typ = lir::InterfaceTyp::Struct(
-        [("0".to_string(), (None, interface_typ)), ("1".to_string(), (None, lir::InterfaceTyp::Unit))]
-            .into_iter()
-            .collect(),
+        [("0".to_string(), interface_typ), ("1".to_string(), lir::InterfaceTyp::Unit)].into_iter().collect(),
     );
 
     let module = lir::composite("channel", interface_typ, Some("in"), Some("out"), |i, _| {
@@ -14,11 +12,9 @@ fn spsc(k: &mut lir::CompositeModule, interface_typ: lir::InterfaceTyp) -> (lir:
             panic!();
         };
 
-        let i = inner.remove("0").unwrap().1;
+        let i = inner.remove("0").unwrap();
 
-        lir::Interface::Struct(
-            [("0".to_string(), (None, lir::Interface::Unit)), ("1".to_string(), (None, i))].into_iter().collect(),
-        )
+        lir::Interface::Struct([("0".to_string(), lir::Interface::Unit), ("1".to_string(), i)].into_iter().collect())
     })
     .build();
 

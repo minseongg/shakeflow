@@ -276,13 +276,16 @@ pub struct ManagerInput<
     pub commit: VrChannel<CommitReq<OP_TAG_WIDTH>>,
 
     /// AXI-Lite slave interface
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     pub s_axil_aw: VrChannel<Addr<AXIL_ADDR_WIDTH>>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     pub s_axil_w: VrChannel<WReq>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     pub s_axil_ar: VrChannel<Addr<AXIL_ADDR_WIDTH>>,
 
     /// Configuration
@@ -299,10 +302,12 @@ pub struct ManagerOutput<Resp: Signal, Out: Signal> {
     pub output: UniChannel<Valid<Out>>,
 
     /// AXI-Lite slave interface
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     pub s_axil_b: VrChannel<WRes>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     pub s_axil_r: VrChannel<RRes>,
 }
 

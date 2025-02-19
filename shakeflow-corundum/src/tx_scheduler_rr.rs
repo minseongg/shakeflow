@@ -29,13 +29,16 @@ pub struct I<const REQ_TAG_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize> {
     s_axis_sched_ctrl: VrChannel<SchedCtrl>,
 
     /// AXI-Lite slave interface
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     s_axil_aw: VrChannel<Addr<AXIL_ADDR_WIDTH>>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     s_axil_w: VrChannel<WReq>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     s_axil_ar: VrChannel<Addr<AXIL_ADDR_WIDTH>>,
 
     /// Control
@@ -48,10 +51,12 @@ pub struct O<const REQ_TAG_WIDTH: usize, const QUEUE_INDEX_WIDTH: usize> {
     m_axis_tx_req: VrChannel<Req<QUEUE_INDEX_WIDTH, REQ_TAG_WIDTH>>,
 
     /// AXI-Lite slave interface
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     s_axil_b: VrChannel<WRes>,
 
-    #[member(nosep)]
+    // TODO: Uncomment below line.
+    // #[member(nosep)]
     s_axil_r: VrChannel<RRes>,
 
     /// Control
