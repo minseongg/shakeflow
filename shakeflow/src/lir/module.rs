@@ -40,7 +40,8 @@ pub enum ModuleInner {
 /// Module.
 #[derive(Debug, Clone)]
 pub struct Module {
-    pub(crate) inner: Rc<ModuleInner>,
+    /// Inner.
+    pub inner: Rc<ModuleInner>,
 }
 
 impl Module {
@@ -161,7 +162,7 @@ pub enum ModuleError {
 
 impl ModuleInner {
     /// Returns input interface type of the module.
-    pub(crate) fn input_interface_typ(&self) -> InterfaceTyp {
+    pub fn input_interface_typ(&self) -> InterfaceTyp {
         match self {
             Self::Composite(_, builder) => builder.input_interface_typ(),
             Self::Fsm(module) => module.input_interface_typ(),
@@ -171,7 +172,7 @@ impl ModuleInner {
     }
 
     /// Returns input prefix of the module.
-    pub(crate) fn input_prefix(&self) -> Option<String> {
+    pub fn input_prefix(&self) -> Option<String> {
         match self {
             Self::Composite(_, builder) => builder.input_prefix.clone(),
             Self::Fsm(_) | Self::ModuleInst(_) | Self::VirtualModule(_) => None,
@@ -179,7 +180,7 @@ impl ModuleInner {
     }
 
     /// Returns output interface type of the module.
-    pub(crate) fn output_interface_typ(&self) -> InterfaceTyp {
+    pub fn output_interface_typ(&self) -> InterfaceTyp {
         match self {
             Self::Composite(_, builder) => builder.output_interface_typ(),
             Self::Fsm(module) => module.output_interface_typ(),
@@ -189,7 +190,7 @@ impl ModuleInner {
     }
 
     /// Returns output prefix of the module.
-    pub(crate) fn output_prefix(&self) -> Option<String> {
+    pub fn output_prefix(&self) -> Option<String> {
         match self {
             Self::Composite(_, builder) => builder.output_prefix.clone(),
             Self::Fsm(_) | Self::ModuleInst(_) | Self::VirtualModule(_) => None,
